@@ -6,6 +6,7 @@ import { motion } from "framer-motion";
 import { ScrollReveal } from "~/components/providers/scroll-provider";
 import { useAnimationInView, animations } from "~/hooks/useAnimation";
 import { siteConfig } from "~/lib/constants";
+import { Button } from "../ui/button";
 
 export const ServicesSection = () => {
   const [servicesRef, servicesInView, servicesHidden, servicesVisible] =
@@ -16,7 +17,7 @@ export const ServicesSection = () => {
       <div className="container mx-auto px-4">
         <ScrollReveal direction="up" threshold={0.2}>
           <div className="mb-16 text-center">
-            <span className="font-mono uppercase tracking-wider text-[#C026D3]">
+            <span className="text-accent-500 font-mono uppercase tracking-wider">
               Our Expertise
             </span>
 
@@ -41,14 +42,14 @@ export const ServicesSection = () => {
             >
               <div className="group relative overflow-hidden rounded-xl bg-gradient-to-b from-neutral-900 to-neutral-950">
                 <div className="flex h-full flex-col p-8">
-                  <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-[#3730A3]/20">
+                  <div className="bg-primary-800/20 mb-4 flex h-12 w-12 items-center justify-center rounded-lg">
                     <svg
                       width="24"
                       height="24"
                       viewBox="0 0 24 24"
                       fill="none"
                       xmlns="http://www.w3.org/2000/svg"
-                      className="text-[#5B53D3]"
+                      className="text-primary-400"
                     >
                       <path
                         d="M12 16V8M8 12h8"
@@ -59,7 +60,7 @@ export const ServicesSection = () => {
                     </svg>
                   </div>
 
-                  <h3 className="mb-2 text-2xl font-bold transition-colors group-hover:text-[#C026D3]">
+                  <h3 className="group-hover:text-accent-500 mb-2 text-2xl font-bold transition-colors">
                     {service.name}
                   </h3>
 
@@ -67,8 +68,12 @@ export const ServicesSection = () => {
                     {service.description}
                   </p>
 
-                  <div className="flex items-center font-medium text-[#5B53D3] transition-colors group-hover:text-[#C026D3]">
-                    <span>Learn more</span>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="text-primary-400 group-hover:text-accent-500 flex items-center p-0 transition-colors"
+                  >
+                    Learn more
                     <svg
                       width="20"
                       height="20"
@@ -85,17 +90,17 @@ export const ServicesSection = () => {
                         strokeLinejoin="round"
                       />
                     </svg>
-                  </div>
+                  </Button>
                 </div>
 
                 {/* Gradient border */}
-                <div className="absolute inset-0 rounded-xl border border-transparent transition-all duration-300 group-hover:border-[#C026D3]/50" />
+                <div className="group-hover:border-accent-500/50 absolute inset-0 rounded-xl border border-transparent transition-all duration-300" />
 
                 {/* Corner accents */}
-                <div className="absolute left-0 top-0 h-4 w-4 rounded-tl-xl border-l border-t border-transparent transition-all duration-300 group-hover:border-[#C026D3]" />
-                <div className="absolute right-0 top-0 h-4 w-4 rounded-tr-xl border-r border-t border-transparent transition-all duration-300 group-hover:border-[#C026D3]" />
-                <div className="absolute bottom-0 left-0 h-4 w-4 rounded-bl-xl border-b border-l border-transparent transition-all duration-300 group-hover:border-[#C026D3]" />
-                <div className="absolute bottom-0 right-0 h-4 w-4 rounded-br-xl border-b border-r border-transparent transition-all duration-300 group-hover:border-[#C026D3]" />
+                <div className="group-hover:border-accent-500 absolute left-0 top-0 h-4 w-4 rounded-tl-xl border-l border-t border-transparent transition-all duration-300" />
+                <div className="group-hover:border-accent-500 absolute right-0 top-0 h-4 w-4 rounded-tr-xl border-r border-t border-transparent transition-all duration-300" />
+                <div className="group-hover:border-accent-500 absolute bottom-0 left-0 h-4 w-4 rounded-bl-xl border-b border-l border-transparent transition-all duration-300" />
+                <div className="group-hover:border-accent-500 absolute bottom-0 right-0 h-4 w-4 rounded-br-xl border-b border-r border-transparent transition-all duration-300" />
               </div>
             </ScrollReveal>
           ))}

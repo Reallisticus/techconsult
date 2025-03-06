@@ -24,19 +24,19 @@ export const siteConfig = {
 // Color science-based palette
 export const colorPalette = {
   primary: {
-    base: "#3730A3", // Deep indigo - authority, expertise
-    light: "#5B53D3",
-    dark: "#2A2373",
+    base: "#2563EB", // Royal blue - trustworthiness, intelligence
+    light: "#60A5FA",
+    dark: "#1D4ED8",
   },
   secondary: {
-    base: "#0F766E", // Teal - reliability, clarity
-    light: "#14B8AD",
-    dark: "#0A4F4A",
+    base: "#059669", // Emerald - growth, stability
+    light: "#34D399",
+    dark: "#047857",
   },
   accent: {
-    base: "#C026D3", // Magenta - energy, innovation
-    light: "#DB4AEE",
-    dark: "#9C13AD",
+    base: "#7C3AED", // Violet - innovation, creativity
+    light: "#A78BFA",
+    dark: "#5B21B6",
   },
   neutral: {
     50: "#FAFAFA",

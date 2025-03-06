@@ -6,6 +6,7 @@ import Link from "next/link";
 import { motion, useMotionValueEvent, useScroll } from "framer-motion";
 import { cn } from "../../lib/utils";
 import { Magnetic } from "../ui/magnetic";
+import { Button } from "../ui/button";
 
 export const Navbar = () => {
   const [active, setActive] = useState(false);
@@ -46,7 +47,7 @@ export const Navbar = () => {
         <div className="mx-auto flex max-w-7xl items-center justify-between">
           {/* Logo */}
           <Link href="/">
-            <h1 className="from-primary-600 to-secondary-500 bg-gradient-to-r bg-clip-text text-2xl font-bold text-transparent">
+            <h1 className="from-primary-500 to-secondary-500 bg-gradient-to-r bg-clip-text text-2xl font-bold text-transparent">
               TechConsult.BG
             </h1>
           </Link>
@@ -64,11 +65,9 @@ export const Navbar = () => {
                 </Link>
               </Magnetic>
             ))}
-            <Magnetic strength={30}>
-              <button className="from-accent-600 to-accent-400 rounded-full bg-gradient-to-r px-6 py-2 font-medium text-white transition-all duration-300 hover:shadow-lg">
-                Let's Talk
-              </button>
-            </Magnetic>
+            <Button variant="gradient" magnetic magneticStrength={30}>
+              Let's Talk
+            </Button>
           </div>
 
           {/* Mobile Menu Button */}

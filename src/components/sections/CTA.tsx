@@ -14,12 +14,12 @@ export const CtaSection = () => {
   );
 
   return (
-    <section className="bg-gradient-to-b from-neutral-950 to-[#3730A3]/20 py-24">
+    <section className="to-primary-900/20 bg-gradient-to-b from-neutral-950 py-24">
       <div className="container mx-auto px-4">
         <ScrollReveal direction="up" threshold={0.3}>
           <div className="relative mx-auto max-w-4xl overflow-hidden rounded-2xl p-8 md:p-12">
             {/* Background gradient with parallax effect */}
-            <div className="absolute inset-0 z-0 rounded-2xl bg-gradient-to-br from-[#3730A3]/30 to-[#2A2373]/10" />
+            <div className="from-primary-900/30 to-primary-800/10 absolute inset-0 z-0 rounded-2xl bg-gradient-to-br" />
 
             <Parallax
               speed={0.15}
@@ -27,16 +27,16 @@ export const CtaSection = () => {
               className="z-1 pointer-events-none absolute inset-0 overflow-hidden rounded-2xl"
             >
               <div className="relative h-full w-full">
-                <div className="absolute right-1/4 top-0 h-32 w-32 rounded-full bg-[#C026D3]/10 blur-xl"></div>
-                <div className="absolute bottom-1/4 left-1/4 h-48 w-48 rounded-full bg-[#3730A3]/10 blur-xl"></div>
+                <div className="bg-accent-500/10 absolute right-1/4 top-0 h-32 w-32 rounded-full blur-xl"></div>
+                <div className="bg-primary-500/10 absolute bottom-1/4 left-1/4 h-48 w-48 rounded-full blur-xl"></div>
               </div>
             </Parallax>
 
             {/* Animated border */}
             <div className="absolute inset-0 z-0 rounded-2xl">
-              <div className="absolute inset-0 rounded-2xl border border-[#3730A3]/30" />
+              <div className="border-primary-700/30 absolute inset-0 rounded-2xl border" />
               <motion.div
-                className="absolute right-0 top-0 h-1 w-1/3 bg-gradient-to-r from-transparent to-[#C026D3]"
+                className="to-accent-500 absolute right-0 top-0 h-1 w-1/3 bg-gradient-to-r from-transparent"
                 animate={{ x: [100, -400] }}
                 transition={{
                   duration: 5,
@@ -46,7 +46,7 @@ export const CtaSection = () => {
                 }}
               />
               <motion.div
-                className="absolute bottom-0 left-0 h-1 w-1/3 bg-gradient-to-r from-[#C026D3] to-transparent"
+                className="from-accent-500 absolute bottom-0 left-0 h-1 w-1/3 bg-gradient-to-r to-transparent"
                 animate={{ x: [-100, 400] }}
                 transition={{
                   duration: 5,
@@ -56,7 +56,7 @@ export const CtaSection = () => {
                 }}
               />
               <motion.div
-                className="absolute bottom-0 left-0 h-1/3 w-1 bg-gradient-to-b from-transparent to-[#C026D3]"
+                className="to-accent-500 absolute bottom-0 left-0 h-1/3 w-1 bg-gradient-to-b from-transparent"
                 animate={{ y: [100, -400] }}
                 transition={{
                   duration: 5,
@@ -66,7 +66,7 @@ export const CtaSection = () => {
                 }}
               />
               <motion.div
-                className="absolute right-0 top-0 h-1/3 w-1 bg-gradient-to-b from-[#C026D3] to-transparent"
+                className="from-accent-500 absolute right-0 top-0 h-1/3 w-1 bg-gradient-to-b to-transparent"
                 animate={{ y: [-100, 400] }}
                 transition={{
                   duration: 5,
@@ -91,7 +91,7 @@ export const CtaSection = () => {
                 <Magnetic strength={40}>
                   <Link
                     href="/contact"
-                    className="inline-block rounded-full bg-gradient-to-r from-[#C026D3] to-[#DB4AEE] px-8 py-4 text-lg font-medium transition-all duration-300 hover:shadow-[0_0_20px_rgba(192,38,211,0.4)]"
+                    className="from-accent-500 to-accent-400 inline-block rounded-full bg-gradient-to-r px-8 py-4 text-lg font-medium transition-all duration-300 hover:shadow-[0_0_20px_rgba(124,58,237,0.4)]"
                   >
                     Schedule a Consultation
                   </Link>
