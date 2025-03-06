@@ -1,0 +1,172 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --cursor-color: 192, 38, 211;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  @apply bg-neutral-950 text-white;
+}
+
+/* Custom cursor effect */
+.custom-cursor {
+  width: 32px;
+  height: 32px;
+  border: 2px solid rgba(var(--cursor-color), 0.7);
+  border-radius: 50%;
+  position: fixed;
+  pointer-events: none;
+  transform: translate(-50%, -50%);
+  transition: all 0.1s ease;
+  transition-property: width, height, border;
+  z-index: 9999;
+  mix-blend-mode: difference;
+}
+
+.custom-cursor--link {
+  width: 48px;
+  height: 48px;
+  border-color: rgba(var(--cursor-color), 1);
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(9, 9, 11, 0.2);
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(192, 38, 211, 0.5);
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(192, 38, 211, 0.8);
+}
+
+/* Text selection color */
+::selection {
+  background-color: rgba(192, 38, 211, 0.2);
+  color: #fff;
+}
+
+/* Noise texture overlay */
+.noise-texture {
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+}
+
+/* Digital font and text effects */
+@font-face {
+  font-family: "Digital";
+  src: url("/fonts/digital.woff2") format("woff2");
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+.digital-font {
+  font-family: "Digital", monospace;
+  letter-spacing: 0.05em;
+  text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+}
+
+.char {
+  position: relative;
+  display: inline-block;
+  transform-style: preserve-3d;
+}
+
+.char::before,
+.char::after {
+  content: attr(data-char);
+  position: absolute;
+  opacity: 0;
+  transition: all 0.2s ease;
+}
+
+.char::before {
+  left: 2px;
+  text-shadow: -1px 0 #00fffc;
+  transform: translateZ(-1px);
+}
+
+.char::after {
+  left: -2px;
+  text-shadow: 1px 0 #ff00c1;
+  transform: translateZ(1px);
+}
+
+.char.glitch-effect {
+  animation: glitch 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
+}
+
+@keyframes glitch {
+  0% {
+    transform: translate(0);
+  }
+  20% {
+    transform: translate(-2px, 2px);
+  }
+  40% {
+    transform: translate(-2px, -2px);
+  }
+  60% {
+    transform: translate(2px, 2px);
+  }
+  80% {
+    transform: translate(2px, -2px);
+  }
+  100% {
+    transform: translate(0);
+  }
+}
+
+/* Reveal effect for text */
+.digital-heading::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 0%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.2),
+    transparent
+  );
+  animation: reveal-sweep 3s ease-in-out infinite;
+}
+
+@keyframes reveal-sweep {
+  0% {
+    left: -50%;
+    width: 0%;
+  }
+  50% {
+    width: 100%;
+  }
+  100% {
+    left: 100%;
+    width: 0%;
+  }
+}
+
+.animate-item {
+  /* Initial state: hidden and slightly offset */
+  opacity: 0;
+  transform: translateY(40px);
+  /* Fallback transition for when JavaScript might be disabled */
+  transition:
+    opacity 0.8s ease-out,
+    transform 0.8s ease-out;
+}
