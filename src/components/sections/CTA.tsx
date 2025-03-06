@@ -1,4 +1,4 @@
-// src/components/sections/CtaSection.tsx
+// src/components/sections/CTA.tsx
 "use client";
 
 import Link from "next/link";
@@ -6,8 +6,10 @@ import { motion } from "framer-motion";
 import { Magnetic } from "~/components/ui/magnetic";
 import { Parallax, ScrollReveal } from "~/components/providers/scroll-provider";
 import { useAnimationInView } from "~/hooks/useAnimation";
+import { useLanguage } from "~/i18n/context";
 
 export const CtaSection = () => {
+  const { t } = useLanguage();
   const [ctaRef, ctaInView, ctaHidden, ctaVisible] = useAnimationInView(
     "slideUp",
     { threshold: 0.3 },
@@ -79,12 +81,11 @@ export const CtaSection = () => {
 
             <div className="relative z-10 space-y-6 text-center">
               <h2 className="text-3xl font-bold leading-tight md:text-4xl">
-                Ready to transform your business with technology?
+                {t("cta.title")}
               </h2>
 
               <p className="mx-auto max-w-2xl text-lg text-neutral-300">
-                Let's discuss how our strategic IT consulting services can help
-                you overcome challenges and seize opportunities.
+                {t("cta.description")}
               </p>
 
               <div className="pt-4">
@@ -93,7 +94,7 @@ export const CtaSection = () => {
                     href="/contact"
                     className="from-accent-500 to-accent-400 inline-block rounded-full bg-gradient-to-r px-8 py-4 text-lg font-medium transition-all duration-300 hover:shadow-[0_0_20px_rgba(124,58,237,0.4)]"
                   >
-                    Schedule a Consultation
+                    {t("cta.button")}
                   </Link>
                 </Magnetic>
               </div>

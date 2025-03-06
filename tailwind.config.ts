@@ -7,8 +7,15 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        sans: ["var(--font-space-grotesk)", "sans-serif"],
-        display: ["var(--font-silkscreen)", "sans-serif"],
+        // Latin fonts
+        sans: ["var(--font-space-grotesk)", ...fontFamily.sans],
+        display: ["var(--font-silkscreen)", "monospace"],
+
+        // Cyrillic fonts
+        "pt-sans": ["var(--font-pt-sans)", ...fontFamily.sans],
+        roboto: ["var(--font-roboto)", ...fontFamily.sans],
+
+        // Shared
         mono: ["monospace"],
       },
       colors: {

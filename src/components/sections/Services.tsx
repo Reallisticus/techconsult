@@ -7,10 +7,28 @@ import { ScrollReveal } from "~/components/providers/scroll-provider";
 import { useAnimationInView, animations } from "~/hooks/useAnimation";
 import { siteConfig } from "~/lib/constants";
 import { Button } from "../ui/button";
+import { useLanguage } from "~/i18n/context";
 
 export const ServicesSection = () => {
+  const { t } = useLanguage();
   const [servicesRef, servicesInView, servicesHidden, servicesVisible] =
     useAnimationInView("stagger");
+
+  // Map service categories to translation keys
+  const serviceTranslations = [
+    {
+      name: t("services.strategicPlanning"),
+      description: t("services.strategicPlanning.description"),
+    },
+    {
+      name: t("services.digitalTransformation"),
+      description: t("services.digitalTransformation.description"),
+    },
+    {
+      name: t("services.technicalArchitecture"),
+      description: t("services.technicalArchitecture.description"),
+    },
+  ];
 
   return (
     <section className="bg-neutral-950 py-24">
@@ -18,22 +36,21 @@ export const ServicesSection = () => {
         <ScrollReveal direction="up" threshold={0.2}>
           <div className="mb-16 text-center">
             <span className="text-accent-500 font-mono uppercase tracking-wider">
-              Our Expertise
+              {t("services.subtitle")}
             </span>
 
             <h2 className="mb-6 text-4xl font-bold md:text-5xl">
-              Strategic Technology Solutions
+              {t("services.title")}
             </h2>
 
             <p className="mx-auto max-w-2xl text-lg text-neutral-300">
-              We combine deep technical expertise with strategic thinking to
-              deliver solutions that transform businesses.
+              {t("services.description")}
             </p>
           </div>
         </ScrollReveal>
 
         <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
-          {siteConfig.serviceCategories.map((service, index) => (
+          {serviceTranslations.map((service, index) => (
             <ScrollReveal
               key={service.name}
               direction="up"
@@ -73,7 +90,7 @@ export const ServicesSection = () => {
                     size="sm"
                     className="text-primary-400 group-hover:text-accent-500 flex items-center p-0 transition-colors"
                   >
-                    Learn more
+                    {t("services.learnMore")}
                     <svg
                       width="20"
                       height="20"

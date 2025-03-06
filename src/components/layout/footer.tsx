@@ -6,17 +6,19 @@ import { motion } from "framer-motion";
 import { Magnetic } from "~/components/ui/magnetic";
 import { useAnimationInView } from "~/hooks/useAnimation";
 import { siteConfig } from "~/lib/constants";
+import { useLanguage } from "~/i18n/context";
 
 export const Footer = () => {
+  const { t } = useLanguage();
   const [footerRef, footerInView, footerHidden, footerVisible] =
     useAnimationInView("slideUp", { threshold: 0.1 });
 
   const navItems = [
-    { name: "Home", href: "/" },
-    { name: "Services", href: "/services" },
-    { name: "Case Studies", href: "/case-studies" },
-    { name: "About", href: "/about" },
-    { name: "Contact", href: "/contact" },
+    { name: t("nav.home"), href: "/" },
+    { name: t("nav.services"), href: "/services" },
+    { name: t("nav.caseStudies"), href: "/case-studies" },
+    { name: t("nav.about"), href: "/about" },
+    { name: t("nav.contact"), href: "/contact" },
   ];
 
   const socialLinks = [
@@ -24,6 +26,24 @@ export const Footer = () => {
     { name: "Twitter", href: "#", icon: "twitter" },
     { name: "GitHub", href: "#", icon: "github" },
   ];
+
+  // Get service categories with translated names
+  const serviceCategories = [
+    {
+      name: t("services.strategicPlanning"),
+      href: "/services#strategic-planning",
+    },
+    {
+      name: t("services.digitalTransformation"),
+      href: "/services#digital-transformation",
+    },
+    {
+      name: t("services.technicalArchitecture"),
+      href: "/services#technical-architecture",
+    },
+  ];
+
+  const currentYear = new Date().getFullYear();
 
   return (
     <motion.footer
@@ -96,7 +116,9 @@ export const Footer = () => {
             }}
             className="space-y-6"
           >
-            <h3 className="text-lg font-bold text-white">Quick Links</h3>
+            <h3 className="text-lg font-bold text-white">
+              {t("footer.quickLinks")}
+            </h3>
             <ul className="space-y-3">
               {navItems.map((item) => (
                 <li key={item.name}>
@@ -120,12 +142,14 @@ export const Footer = () => {
             }}
             className="space-y-6"
           >
-            <h3 className="text-lg font-bold text-white">Services</h3>
+            <h3 className="text-lg font-bold text-white">
+              {t("footer.services")}
+            </h3>
             <ul className="space-y-3">
-              {siteConfig.serviceCategories.map((service) => (
+              {serviceCategories.map((service) => (
                 <li key={service.name}>
                   <Link
-                    href={`/services#${service.name.toLowerCase().replace(/\s+/g, "-")}`}
+                    href={service.href}
                     className="hover:text-accent-400 group flex items-center text-neutral-400 transition-colors duration-300"
                   >
                     <span className="bg-accent-400 mr-0 h-px w-0 transition-all duration-300 group-hover:mr-2 group-hover:w-4"></span>
@@ -144,7 +168,9 @@ export const Footer = () => {
             }}
             className="space-y-6"
           >
-            <h3 className="text-lg font-bold text-white">Contact Us</h3>
+            <h3 className="text-lg font-bold text-white">
+              {t("footer.contact")}
+            </h3>
             <ul className="space-y-4 text-neutral-400">
               <li className="flex items-start">
                 <svg
@@ -166,7 +192,7 @@ export const Footer = () => {
                     d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
                   />
                 </svg>
-                <span>Sofia, Bulgaria</span>
+                <span>{t("contact.location")}</span>
               </li>
               <li className="flex items-start">
                 <svg
@@ -182,7 +208,7 @@ export const Footer = () => {
                     d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
                   />
                 </svg>
-                <span>contact@techconsult.bg</span>
+                <span>{t("contact.email")}</span>
               </li>
               <li className="flex items-start">
                 <svg
@@ -198,7 +224,7 @@ export const Footer = () => {
                     d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"
                   />
                 </svg>
-                <span>+359 88 888 8888</span>
+                <span>{t("contact.phone")}</span>
               </li>
             </ul>
           </motion.div>
@@ -225,22 +251,20 @@ export const Footer = () => {
           }}
           className="flex flex-col items-center justify-between py-8 text-sm text-neutral-500 md:flex-row"
         >
-          <p>
-            © {new Date().getFullYear()} TechConsult.BG. All rights reserved.
-          </p>
+          <p>{t("footer.rights", { year: currentYear })}</p>
 
           <div className="mt-4 flex space-x-6 md:mt-0">
             <Link
               href="/privacy-policy"
               className="hover:text-accent-400 transition-colors duration-300"
             >
-              Privacy Policy
+              {t("footer.privacyPolicy")}
             </Link>
             <Link
               href="/terms-of-service"
               className="hover:text-accent-400 transition-colors duration-300"
             >
-              Terms of Service
+              {t("footer.termsOfService")}
             </Link>
           </div>
         </motion.div>

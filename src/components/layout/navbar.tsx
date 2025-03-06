@@ -7,18 +7,21 @@ import { motion, useMotionValueEvent, useScroll } from "framer-motion";
 import { cn } from "../../lib/utils";
 import { Magnetic } from "../ui/magnetic";
 import { Button } from "../ui/button";
+import { LanguageSwitcher } from "../ui/language-switcher";
+import { useLanguage } from "~/i18n/context";
 
 export const Navbar = () => {
   const [active, setActive] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const { scrollY } = useScroll();
+  const { t } = useLanguage();
 
   const navItems = [
-    { name: "Home", href: "/" },
-    { name: "Services", href: "/services" },
-    { name: "Case Studies", href: "/case-studies" },
-    { name: "About", href: "/about" },
-    { name: "Contact", href: "/contact" },
+    { name: t("nav.home"), href: "/" },
+    { name: t("nav.services"), href: "/services" },
+    { name: t("nav.caseStudies"), href: "/case-studies" },
+    { name: t("nav.about"), href: "/about" },
+    { name: t("nav.contact"), href: "/contact" },
   ];
 
   useMotionValueEvent(scrollY, "change", (latest) => {
@@ -53,7 +56,7 @@ export const Navbar = () => {
           </Link>
 
           {/* Desktop Menu */}
-          <div className="hidden items-center space-x-8 md:flex">
+          <div className="hidden items-center space-x-6 md:flex">
             {navItems.map((item) => (
               <Magnetic key={item.name} strength={15}>
                 <Link
@@ -65,13 +68,18 @@ export const Navbar = () => {
                 </Link>
               </Magnetic>
             ))}
+
+            <LanguageSwitcher variant="full" />
+
             <Button variant="gradient" magnetic magneticStrength={30}>
-              Let's Talk
+              {t("nav.letsTalk")}
             </Button>
           </div>
 
           {/* Mobile Menu Button */}
-          <div className="md:hidden">
+          <div className="flex items-center space-x-4 md:hidden">
+            <LanguageSwitcher variant="icon" />
+
             <button
               onClick={() => setIsOpen(!isOpen)}
               className="relative z-50 flex h-10 w-10 items-center justify-center"
@@ -147,7 +155,7 @@ export const Navbar = () => {
               }}
             >
               <button className="bg-accent-500 mt-6 rounded-full px-8 py-3 text-lg font-medium text-white">
-                Let's Talk
+                {t("nav.letsTalk")}
               </button>
             </motion.div>
           </div>

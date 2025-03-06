@@ -8,14 +8,21 @@ import { ScrollTrigger } from "gsap/dist/ScrollTrigger";
 import { Magnetic } from "~/components/ui/magnetic";
 import { HeroBackground } from "~/components/utils/HeroBackground";
 import { Button } from "../ui/button";
+import { useLanguage } from "~/i18n/context";
+import { getDisplayFontClass } from "~/lib/fonts";
+import { cn } from "~/lib/utils";
 
 export const Hero = () => {
+  const { t, language } = useLanguage();
   const heroRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
   const imageContainerRef = useRef<HTMLDivElement>(null);
   const overlayRef = useRef<HTMLDivElement>(null);
   const transitionRef = useRef<HTMLDivElement>(null);
   const [imagesLoaded, setImagesLoaded] = useState(true);
+
+  // Get the appropriate display font class based on language
+  const displayFontClass = getDisplayFontClass(language);
 
   // GSAP ScrollTrigger for animations
   useEffect(() => {
@@ -88,26 +95,31 @@ export const Hero = () => {
           className="container relative z-10 mx-auto flex min-h-screen flex-col items-center justify-center px-4 py-24"
         >
           <div className="max-w-5xl text-center">
-            {/* Hero Headline */}
-            <h1 className="animate-item font-display mb-6 text-5xl font-bold tracking-tight md:text-7xl lg:text-8xl">
+            {/* Hero Headline - Dynamic font class based on language */}
+            <h1
+              className={cn(
+                "animate-item mb-6 text-5xl font-bold tracking-tight md:text-7xl lg:text-8xl",
+                // For Bulgarian, we use a different font class as Silkscreen doesn't support Cyrillic
+                language === "bg" ? displayFontClass : "font-display",
+              )}
+            >
               <span className="block bg-gradient-to-r from-white to-white/70 bg-clip-text text-transparent">
-                TECHNOLOGY
+                {t("hero.headline1")}
               </span>
               <span className="block bg-gradient-to-r from-white to-white/70 bg-clip-text text-transparent">
-                SOLUTIONS FOR
+                {t("hero.headline2")}
               </span>
               <span className="via-accent-400/90 block bg-gradient-to-r from-white to-white/70 bg-clip-text text-transparent">
-                TOMORROW'S
+                {t("hero.headline3")}
               </span>
               <span className="from-accent-400/90 block bg-gradient-to-r via-white/90 to-white/70 bg-clip-text text-transparent">
-                CHALLENGES
+                {t("hero.headline4")}
               </span>
             </h1>
 
             {/* Subheading */}
             <p className="animate-item mx-auto mb-10 max-w-2xl text-xl text-white/80 md:text-2xl">
-              We turn complex business problems into elegant technology
-              solutions that drive growth and innovation.
+              {t("hero.subheading")}
             </p>
 
             {/* CTA Buttons */}
@@ -120,7 +132,7 @@ export const Hero = () => {
                 magnetic
                 magneticStrength={40}
               >
-                Start a Project
+                {t("hero.startProject")}
               </Button>
 
               <Button
@@ -131,7 +143,7 @@ export const Hero = () => {
                 magnetic
                 magneticStrength={20}
               >
-                Explore Services
+                {t("hero.exploreServices")}
               </Button>
             </div>
           </div>
