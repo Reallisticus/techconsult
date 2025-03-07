@@ -150,48 +150,6 @@ export const Hero = () => {
         </div>
 
         {/* Custom transition element to next section */}
-        <div className="absolute bottom-0 left-0 z-20 h-[250px] w-full">
-          <svg
-            className="h-full w-full"
-            preserveAspectRatio="none"
-            viewBox="0 0 100 100"
-            fill="none"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <path
-              d="M0,100 L0,50 Q50,0 100,50 L100,100 L0,100 Z"
-              fill="#0a0a0a"
-              className="transition-all duration-1000"
-            />
-            <path
-              d="M0,100 L0,60 Q50,20 100,60 L100,100 L0,100 Z"
-              fill="#0a0a0a"
-              opacity="0.7"
-              className="transition-all duration-1000"
-            />
-          </svg>
-
-          {/* Animated particles at the transition boundary */}
-          <div className="absolute bottom-[30%] left-0 h-[1px] w-full overflow-hidden">
-            <div className="absolute inset-0 flex">
-              {Array.from({ length: 20 }).map((_, i) => (
-                <div key={i} className="relative h-[1px] flex-1">
-                  <motion.div
-                    className="bg-accent-500 absolute h-1 w-1 rounded-full"
-                    style={{ left: `${5 + i * 5}%` }}
-                    animate={{ opacity: [0, 1, 0], y: [-10, 10], x: [-20, 20] }}
-                    transition={{
-                      duration: 3,
-                      delay: i * 0.1,
-                      repeat: Infinity,
-                      repeatType: "reverse",
-                    }}
-                  />
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
       </section>
     </div>
   );
