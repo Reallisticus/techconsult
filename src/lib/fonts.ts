@@ -5,6 +5,7 @@ import {
   Silkscreen,
   PT_Sans,
   Roboto,
+  DotGothic16,
 } from "next/font/google";
 import { Language } from "~/i18n/context";
 
@@ -27,8 +28,8 @@ export const ptSans = PT_Sans({
   variable: "--font-pt-sans",
 });
 
-export const roboto = Roboto({
-  weight: ["400", "500", "700"],
+export const roboto = DotGothic16({
+  weight: ["400"],
   subsets: ["latin", "cyrillic"],
   variable: "--font-roboto",
 });

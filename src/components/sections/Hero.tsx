@@ -50,49 +50,49 @@ export const Hero = () => {
       );
 
       // Scroll-based transition animation
-      ScrollTrigger.create({
-        trigger: heroRef.current,
-        start: "80% center",
-        end: "bottom top",
-        scrub: true,
-        onUpdate: (self) => {
-          // Clip-path transition effect
-          if (transitionRef.current) {
-            const progress = self.progress;
-            const clipValue = `polygon(0% 0%, 100% 0%, 100% ${100 - progress * 100}%, 0% ${100 - progress * 100 + 5}%)`;
-            transitionRef.current.style.clipPath = clipValue;
-          }
+      // ScrollTrigger.create({
+      //   trigger: heroRef.current,
+      //   start: "80% center",
+      //   end: "bottom top",
+      //   scrub: true,
+      //   onUpdate: (self) => {
+      //     // Clip-path transition effect
+      //     if (transitionRef.current) {
+      //       const progress = self.progress;
+      //       const clipValue = `polygon(0% 0%, 100% 0%, 100% ${100 - progress * 100}%, 0% ${100 - progress * 100 + 5}%)`;
+      //       transitionRef.current.style.clipPath = clipValue;
+      //     }
 
-          // Parallax content movement
-          if (contentRef.current) {
-            contentRef.current.style.transform = `translateY(${self.progress * -50}px)`;
-            contentRef.current.style.opacity = `${1 - self.progress * 1.5}`;
-          }
-        },
-      });
+      //     // Parallax content movement
+      //     if (contentRef.current) {
+      //       contentRef.current.style.transform = `translateY(${self.progress * -50}px)`;
+      //       contentRef.current.style.opacity = `${1 - self.progress * 1.5}`;
+      //     }
+      //   },
+      // });
     });
 
     return () => ctx.revert();
   }, [imagesLoaded]);
 
   return (
-    <div ref={heroRef} className="relative">
+    <div ref={heroRef} className="hero-section relative">
       {/* Main Hero Section */}
       <section
         ref={transitionRef}
         className="relative min-h-screen w-full overflow-hidden"
       >
-        {/* Background */}
+        {/* Background - Adding the hero-background class for zoom targeting */}
         <div
           ref={imageContainerRef}
-          className="absolute inset-0 z-0 h-full w-full transition-transform duration-700"
+          className="hero-background absolute inset-0 z-0 h-full w-full transition-transform duration-700"
         >
           <HeroBackground />
         </div>
 
         <div
           ref={contentRef}
-          className="container relative z-10 mx-auto flex min-h-screen flex-col items-center justify-center px-4 py-24"
+          className="hero-content container relative z-10 mx-auto flex min-h-screen flex-col items-center justify-center px-4 py-24"
         >
           <div className="max-w-5xl text-center">
             {/* Hero Headline - Dynamic font class based on language */}
@@ -148,8 +148,6 @@ export const Hero = () => {
             </div>
           </div>
         </div>
-
-        {/* Custom transition element to next section */}
       </section>
     </div>
   );

@@ -1,11 +1,8 @@
 // src/components/sections/Services.tsx
 "use client";
 
-import { useRef } from "react";
-import { motion } from "framer-motion";
 import { ScrollReveal } from "~/components/providers/scroll-provider";
 import { useAnimationInView, animations } from "~/hooks/useAnimation";
-import { siteConfig } from "~/lib/constants";
 import { Button } from "../ui/button";
 import { useLanguage } from "~/i18n/context";
 
@@ -31,7 +28,10 @@ export const ServicesSection = () => {
   ];
 
   return (
-    <section className="bg-neutral-950 py-24">
+    <section
+      className="services-section bg-neutral-950 py-24"
+      style={{ opacity: 0 }}
+    >
       <div className="container mx-auto px-4">
         <ScrollReveal direction="up" threshold={0.2}>
           <div className="mb-16 text-center">

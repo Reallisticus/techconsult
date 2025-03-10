@@ -11,6 +11,10 @@ import { RGBELoader } from "three/addons/loaders/RGBELoader.js";
 
 export const HeroBackground = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  // Add these refs near the top of your component
+  const sceneRef = useRef<THREE.Scene | null>(null);
+  const cameraRef = useRef<THREE.PerspectiveCamera | null>(null);
 
   function getPerformanceLevel() {
     const gpu = (navigator as any).gpu;
@@ -60,12 +64,16 @@ export const HeroBackground = () => {
     const positions: number[] = [];
 
     const scene = new THREE.Scene();
+    sceneRef.current = scene;
+
     const camera = new THREE.PerspectiveCamera(
       75,
       window.innerWidth / window.innerHeight,
       0.1,
       1000,
     );
+    cameraRef.current = camera;
+
     camera.position.z = 45;
 
     // Enhanced renderer with shadow support
@@ -747,8 +755,8 @@ export const HeroBackground = () => {
   }, []);
 
   return (
-    <div className="absolute inset-0 -z-10">
-      <canvas ref={canvasRef} className="h-full w-full" />
+    <div className="absolute inset-0 -z-10" ref={containerRef}>
+      <canvas ref={canvasRef} className="h-max w-full" />
       <div className="via-primary-900/30 pointer-events-none absolute inset-0 bg-gradient-to-b from-black/50 to-black/70" />
     </div>
   );
