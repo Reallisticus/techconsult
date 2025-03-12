@@ -13,7 +13,7 @@ export const CtaSection = () => {
   const [ctaRef, ctaInView] = useAnimationInView("slideUp", { threshold: 0.3 });
 
   return (
-    <section className="bg-transparent py-24">
+    <section className="bg-transparent py-24" ref={ctaRef}>
       <div className="container mx-auto px-4">
         <ScrollReveal direction="up" threshold={0.3}>
           <div className="relative mx-auto max-w-4xl overflow-hidden rounded-2xl p-8 md:p-12">

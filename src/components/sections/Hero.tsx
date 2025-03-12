@@ -1,13 +1,14 @@
 "use client";
 
-import { useRef, useEffect, useState } from "react";
-import gsap from "gsap";
-import { ScrollTrigger } from "gsap/dist/ScrollTrigger";
+import { useRef, useState } from "react";
 import { Button } from "../ui/button";
 import { useLanguage } from "~/i18n/context";
 import { getDisplayFontClass } from "~/lib/fonts";
 import { cn } from "~/lib/utils";
 import { useSmoothScroll } from "../../provider/SmoothScrollProvider";
+import { useGsapAnimation } from "../../hooks/useGSAPAnimation";
+import { ScrollIndicator } from "../utils/ScrollIndicator";
+import { motion } from "framer-motion";
 
 export const Hero = () => {
   const { t, language } = useLanguage();
@@ -15,76 +16,27 @@ export const Hero = () => {
   const contentRef = useRef<HTMLDivElement>(null);
   const [imagesLoaded, setImagesLoaded] = useState(true);
   const { lenis } = useSmoothScroll();
-
-  // Get the appropriate display font class based on language
   const displayFontClass = getDisplayFontClass(language);
+  const [showExtra, setShowExtra] = useState(true);
 
-  useEffect(() => {
-    gsap.registerPlugin(ScrollTrigger);
-
-    // Only run animations once images are loaded
-    if (!imagesLoaded) return;
-
-    const ctx = gsap.context(() => {
-      // Content reveal using gsap.utils.toArray for proper element typing
-      const animateItems = gsap.utils.toArray(
-        contentRef.current?.querySelectorAll(".animate-item") || [],
-      );
-      gsap.fromTo(
-        animateItems,
-        { y: 40, opacity: 0 },
-        {
-          y: 0,
-          opacity: 1,
-          stagger: 0.1,
-          duration: 0.8,
-          ease: "power2.out",
-          delay: 0.3,
-        },
-      );
-
-      // Create a scroll trigger animation for parallax effect
-      if (heroRef.current && lenis) {
-        const tl = gsap.timeline({
-          scrollTrigger: {
-            trigger: heroRef.current,
-            start: "top top",
-            end: "bottom top",
-            scrub: true,
-          },
-        });
-
-        // Parallax effect on hero content
-        tl.to(contentRef.current, {
-          y: 200,
-          opacity: 0.5,
-          ease: "none",
-        });
-      }
-    });
-
-    return () => ctx.revert();
-  }, [imagesLoaded, lenis]);
+  useGsapAnimation(heroRef, contentRef, imagesLoaded, lenis);
 
   return (
     <section
       ref={heroRef}
       className="relative min-h-screen w-full overflow-hidden bg-transparent"
     >
-      {/* Main Hero Section */}
       <div className="relative min-h-screen w-full overflow-hidden">
-        {/* Background - Adding the hero-background class for zoom targeting */}
-
         <div
           ref={contentRef}
           className="hero-content container relative z-10 mx-auto flex min-h-screen flex-col items-center justify-center px-4 py-24"
         >
           <div className="max-w-5xl text-center">
-            {/* Hero Headline - Dynamic font class based on language */}
-            <h1
+            <motion.h1
+              whileHover={{ scale: 1.02 }}
+              transition={{ type: "spring", stiffness: 300 }}
               className={cn(
                 "animate-item mb-6 text-5xl font-bold tracking-tight md:text-7xl lg:text-8xl",
-                // For Bulgarian, we use a different font class as Silkscreen doesn't support Cyrillic
                 language === "bg" ? displayFontClass : "font-display",
               )}
             >
@@ -100,14 +52,10 @@ export const Hero = () => {
               <span className="block bg-gradient-to-r from-accent-400/90 via-white/90 to-white/70 bg-clip-text text-transparent">
                 {t("hero.headline4")}
               </span>
-            </h1>
-
-            {/* Subheading */}
+            </motion.h1>
             <p className="animate-item mx-auto mb-10 max-w-2xl text-xl text-white/80 md:text-2xl">
               {t("hero.subheading")}
             </p>
-
-            {/* CTA Buttons */}
             <div className="animate-item mb-16 flex flex-wrap justify-center gap-6">
               <Button
                 href="/contact"
@@ -119,7 +67,6 @@ export const Hero = () => {
               >
                 {t("hero.startProject")}
               </Button>
-
               <Button
                 href="/services"
                 variant="outline"
@@ -134,6 +81,7 @@ export const Hero = () => {
           </div>
         </div>
       </div>
+      {imagesLoaded && <ScrollIndicator />}
     </section>
   );
 };
