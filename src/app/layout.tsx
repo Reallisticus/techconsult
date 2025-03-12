@@ -5,11 +5,10 @@ import { MotionConfig } from "framer-motion";
 import { TRPCReactProvider } from "~/trpc/react";
 import { cn } from "../lib/utils";
 import { Footer } from "../components/layout/footer";
-// import { SmoothScroll } from "~/components/providers/scroll-provider";
 import { Navbar } from "../components/layout/navbar";
 import { LanguageProvider } from "~/i18n/context";
 import { ptSans, roboto, silkscreen, spaceGrotesk } from "~/lib/fonts";
-import { BackgroundProvider } from "../components/utils/BackgroundProvider";
+import { BackgroundProvider } from "../provider/BackgroundProvider";
 
 export default function RootLayout({
   children,
@@ -31,13 +30,24 @@ export default function RootLayout({
         <LanguageProvider defaultLanguage="en">
           <FontManager>
             <MotionConfig reducedMotion="user">
-              <BackgroundProvider>
-                <Navbar />
-                <main className="relative z-10">
-                  <TRPCReactProvider>{children}</TRPCReactProvider>
-                </main>
-                <Footer />
-              </BackgroundProvider>
+              <SmoothScrollProvider
+                options={{
+                  duration: 1.2,
+                  easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+                  wheelMultiplier: 1,
+                  touchMultiplier: 2,
+                  smoothWheel: true,
+                  smoothTouch: false,
+                }}
+              >
+                <BackgroundProvider>
+                  <Navbar />
+                  <main className="relative z-10">
+                    <TRPCReactProvider>{children}</TRPCReactProvider>
+                  </main>
+                  <Footer />
+                </BackgroundProvider>
+              </SmoothScrollProvider>
             </MotionConfig>
           </FontManager>
         </LanguageProvider>
@@ -49,6 +59,7 @@ export default function RootLayout({
 // Font Manager component to dynamically set font classes based on language
 import { useLanguage } from "~/i18n/context";
 import { getFontFamily, getFontVariables } from "~/lib/fonts";
+import { SmoothScrollProvider } from "../provider/SmoothScrollProvider";
 
 function FontManager({ children }: { children: React.ReactNode }) {
   const { language } = useLanguage();

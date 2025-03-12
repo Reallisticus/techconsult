@@ -7,12 +7,14 @@ import { Button } from "../ui/button";
 import { useLanguage } from "~/i18n/context";
 import { getDisplayFontClass } from "~/lib/fonts";
 import { cn } from "~/lib/utils";
+import { useSmoothScroll } from "../../provider/SmoothScrollProvider";
 
 export const Hero = () => {
   const { t, language } = useLanguage();
   const heroRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
   const [imagesLoaded, setImagesLoaded] = useState(true);
+  const { lenis } = useSmoothScroll();
 
   // Get the appropriate display font class based on language
   const displayFontClass = getDisplayFontClass(language);
@@ -40,13 +42,35 @@ export const Hero = () => {
           delay: 0.3,
         },
       );
+
+      // Create a scroll trigger animation for parallax effect
+      if (heroRef.current && lenis) {
+        const tl = gsap.timeline({
+          scrollTrigger: {
+            trigger: heroRef.current,
+            start: "top top",
+            end: "bottom top",
+            scrub: true,
+          },
+        });
+
+        // Parallax effect on hero content
+        tl.to(contentRef.current, {
+          y: 200,
+          opacity: 0.5,
+          ease: "none",
+        });
+      }
     });
 
     return () => ctx.revert();
-  }, [imagesLoaded]);
+  }, [imagesLoaded, lenis]);
 
   return (
-    <section className="relative min-h-screen w-full overflow-hidden bg-transparent">
+    <section
+      ref={heroRef}
+      className="relative min-h-screen w-full overflow-hidden bg-transparent"
+    >
       {/* Main Hero Section */}
       <div className="relative min-h-screen w-full overflow-hidden">
         {/* Background - Adding the hero-background class for zoom targeting */}

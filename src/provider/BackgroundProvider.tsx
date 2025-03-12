@@ -10,6 +10,7 @@ import {
 } from "react";
 import { HeroBackground } from "~/components/utils/HeroBackground";
 import { useBackgroundState } from "~/hooks/useBackgroundState";
+import { useSmoothScroll } from "./SmoothScrollProvider";
 
 interface BackgroundContextType {
   backgroundRef: React.RefObject<HTMLDivElement> | null;
@@ -28,7 +29,8 @@ interface BackgroundProviderProps {
 export const BackgroundProvider = ({ children }: BackgroundProviderProps) => {
   const backgroundRef = useRef<HTMLDivElement>(null);
   const [mounted, setMounted] = useState(false);
-  const { isVisible, opacity, zoom } = useBackgroundState();
+  const {} = useBackgroundState();
+  const { scroll } = useSmoothScroll();
 
   useEffect(() => {
     setMounted(true);
@@ -36,8 +38,27 @@ export const BackgroundProvider = ({ children }: BackgroundProviderProps) => {
     document.documentElement.style.background = "transparent";
     document.body.style.background = "transparent";
 
-    return () => setMounted(false);
-  }, []);
+    // Apply subtle effects based on scroll position
+    const handleScroll = () => {
+      if (backgroundRef.current) {
+        // Calculate scroll progress
+        const maxScrollDepth = Math.min(document.body.scrollHeight * 0.5, 3000);
+        const scrollProgress = Math.min(1, scroll.current / maxScrollDepth);
+
+        // Apply subtle background effects based on scroll
+        backgroundRef.current.style.filter = `brightness(${Math.max(0.7, 1 - scrollProgress * 0.3)})`;
+      }
+    };
+
+    // Listen for scroll events
+    window.addEventListener("scroll", handleScroll, { passive: true });
+
+    return () => {
+      setMounted(false);
+      window.removeEventListener("scroll", handleScroll);
+    };
+  }, [scroll]);
+
   return (
     <>
       <div
@@ -54,12 +75,18 @@ export const BackgroundProvider = ({ children }: BackgroundProviderProps) => {
           zIndex: "-1000",
           opacity: 1,
           visibility: "visible",
+          transition: "filter 0.2s ease-out",
         }}
       >
         {mounted && <HeroBackground />}
 
-        {/* Semi-transparent overlay gradient */}
-        <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/50 via-primary-900/30 to-black/70" />
+        {/* Semi-transparent overlay gradient with scroll-dependent opacity */}
+        <div
+          className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/50 via-primary-900/30 to-black/70"
+          style={{
+            transition: "opacity 0.5s ease-out",
+          }}
+        />
       </div>
 
       {/* Ensure content sections have transparent backgrounds */}

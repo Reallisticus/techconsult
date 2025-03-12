@@ -1,29 +1,154 @@
-# Create T3 App
+To implement the smooth scrolling provider in your project, follow these steps:
 
-This is a [T3 Stack](https://create.t3.gg/) project bootstrapped with `create-t3-app`.
+1. First, make sure to update your `src/app/layout.tsx` file to use the `SmoothScrollProvider`:
 
-## What's next? How do I make an app with this?
+```typescript
+// Import the SmoothScrollProvider
+import { SmoothScrollProvider } from "~/components/providers/smooth-scroll-provider";
 
-We try to keep this project as simple as possible, so you can start with just the scaffolding we set up for you, and add additional things later when they become necessary.
+// In your RootLayout component, wrap your application with the SmoothScrollProvider
+export default function RootLayout({
+  children,
+}: Readonly<{ children: React.ReactNode }>) {
+  return (
+    <html lang="en" className="dark">
+      <head>
+        {/* ... existing head content ... */}
+      </head>
+      <body className="overflow-x-hidden text-white">
+        <LanguageProvider defaultLanguage="en">
+          <FontManager>
+            <MotionConfig reducedMotion="user">
+              <SmoothScrollProvider
+                options={{
+                  duration: 1.2,
+                  easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+                  wheelMultiplier: 1,
+                  touchMultiplier: 2,
+                  smoothWheel: true,
+                  smoothTouch: false,
+                }}
+              >
+                <BackgroundProvider>
+                  <Navbar />
+                  <main className="relative z-10">
+                    <TRPCReactProvider>{children}</TRPCReactProvider>
+                  </main>
+                  <Footer />
+                </BackgroundProvider>
+              </SmoothScrollProvider>
+            </MotionConfig>
+          </FontManager>
+        </LanguageProvider>
+      </body>
+    </html>
+  );
+}
+```
 
-If you are not familiar with the different technologies used in this project, please refer to the respective docs. If you still are in the wind, please join our [Discord](https://t3.gg/discord) and ask for help.
+2. In any components where you want to use the smooth scrolling features, you can:
 
-- [Next.js](https://nextjs.org)
-- [NextAuth.js](https://next-auth.js.org)
-- [Prisma](https://prisma.io)
-- [Drizzle](https://orm.drizzle.team)
-- [Tailwind CSS](https://tailwindcss.com)
-- [tRPC](https://trpc.io)
+   a. Use the `useSmoothScroll` hook to access the Lenis instance and scroll state:
 
-## Learn More
+   ```typescript
+   import { useSmoothScroll } from "~/components/providers/smooth-scroll-provider";
 
-To learn more about the [T3 Stack](https://create.t3.gg/), take a look at the following resources:
+   function MyComponent() {
+     const { lenis, scroll, scrollTo } = useSmoothScroll();
 
-- [Documentation](https://create.t3.gg/)
-- [Learn the T3 Stack](https://create.t3.gg/en/faq#what-learning-resources-are-currently-available) — Check out these awesome tutorials
+     // You can programmatically scroll to elements
+     const handleClick = () => {
+       scrollTo("#section-id");
+     };
 
-You can check out the [create-t3-app GitHub repository](https://github.com/t3-oss/create-t3-app) — your feedback and contributions are welcome!
+     // Or use the scroll state for animations
+     useEffect(() => {
+       console.log("Current scroll position:", scroll.current);
+       console.log("Scroll direction:", scroll.direction);
+     }, [scroll]);
 
-## How do I deploy this?
+     return <div>...</div>;
+   }
+   ```
 
-Follow our deployment guides for [Vercel](https://create.t3.gg/en/deployment/vercel), [Netlify](https://create.t3.gg/en/deployment/netlify) and [Docker](https://create.t3.gg/en/deployment/docker) for more information.
+   b. Use the `Parallax` component for parallax effects:
+
+   ```typescript
+   import { Parallax } from "~/components/providers/smooth-scroll-provider";
+
+   function MyComponent() {
+     return (
+       <div>
+         <Parallax
+           speed={0.5}
+           direction="up"
+           className="your-class-here"
+         >
+           This content will move with a parallax effect!
+         </Parallax>
+       </div>
+     );
+   }
+   ```
+
+   c. Use the `ScrollReveal` component for scroll-triggered animations:
+
+   ```typescript
+   import { ScrollReveal } from "~/components/providers/smooth-scroll-provider";
+
+   function MyComponent() {
+     return (
+       <ScrollReveal
+         direction="up"
+         delay={0.2}
+         threshold={0.3}
+       >
+         This content will animate in when scrolled into view!
+       </ScrollReveal>
+     );
+   }
+   ```
+
+3. For GSAP animations that need to be synchronized with the smooth scrolling:
+
+```typescript
+import { useEffect, useRef } from "react";
+import gsap from "gsap";
+import { ScrollTrigger } from "gsap/dist/ScrollTrigger";
+import { useSmoothScroll } from "~/components/providers/smooth-scroll-provider";
+
+function MyComponent() {
+  const elementRef = useRef(null);
+  const { lenis } = useSmoothScroll();
+
+  useEffect(() => {
+    if (!elementRef.current || !lenis) return;
+
+    gsap.registerPlugin(ScrollTrigger);
+
+    // Create GSAP animations with ScrollTrigger
+    const tl = gsap.timeline({
+      scrollTrigger: {
+        trigger: elementRef.current,
+        start: "top center",
+        end: "bottom center",
+        scrub: true,
+      }
+    });
+
+    tl.to(elementRef.current, {
+      y: 100,
+      opacity: 0.5,
+      duration: 1
+    });
+
+    return () => {
+      ScrollTrigger.getAll().forEach(trigger => trigger.kill());
+    };
+  }, [lenis]);
+
+  return <div ref={elementRef}>...</div>;
+}
+```
+
+The smooth scrolling provider ensures that ScrollTrigger and Lenis work together correctly to create smooth, synchronized animations.

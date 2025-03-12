@@ -5,13 +5,13 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 import { Magnetic } from "~/components/ui/magnetic";
 import { useAnimationInView } from "~/hooks/useAnimation";
-import { siteConfig } from "~/lib/constants";
 import { useLanguage } from "~/i18n/context";
 
 export const Footer = () => {
   const { t } = useLanguage();
-  const [footerRef, footerInView, footerHidden, footerVisible] =
-    useAnimationInView("slideUp", { threshold: 0.1 });
+  const [footerRef, footerInView] = useAnimationInView("slideUp", {
+    threshold: 0.1,
+  });
 
   const navItems = [
     { name: t("nav.home"), href: "/" },
@@ -65,11 +65,11 @@ export const Footer = () => {
       {/* Animated gradient lines */}
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
         <motion.div
-          className="via-primary-500/30 absolute left-0 top-0 h-px w-full bg-gradient-to-r from-transparent to-transparent"
+          className="absolute left-0 top-0 h-px w-full bg-gradient-to-r from-transparent via-primary-500/30 to-transparent"
           animate={{ opacity: [0.3, 0.8, 0.3] }}
           transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
         />
-        <div className="from-primary-900/20 absolute left-0 right-0 top-0 h-24 bg-gradient-to-b to-transparent" />
+        <div className="absolute left-0 right-0 top-0 h-24 bg-gradient-to-b from-primary-900/20 to-transparent" />
       </div>
 
       <div className="container mx-auto px-4">
@@ -83,7 +83,7 @@ export const Footer = () => {
             className="space-y-6"
           >
             <Link href="/" className="inline-block">
-              <h2 className="from-primary-400 to-accent-400 bg-gradient-to-r bg-clip-text text-2xl font-bold text-transparent">
+              <h2 className="bg-gradient-to-r from-primary-400 to-accent-400 bg-clip-text text-2xl font-bold text-transparent">
                 TechConsult.BG
               </h2>
             </Link>
@@ -98,7 +98,7 @@ export const Footer = () => {
                 <Magnetic key={link.name} strength={20}>
                   <Link
                     href={link.href}
-                    className="hover:bg-primary-900 flex h-10 w-10 items-center justify-center rounded-full bg-neutral-900 transition-colors duration-300"
+                    className="flex h-10 w-10 items-center justify-center rounded-full bg-neutral-900 transition-colors duration-300 hover:bg-primary-900"
                     aria-label={link.name}
                   >
                     <SocialIcon name={link.icon} />
@@ -124,9 +124,9 @@ export const Footer = () => {
                 <li key={item.name}>
                   <Link
                     href={item.href}
-                    className="hover:text-accent-400 group flex items-center text-neutral-400 transition-colors duration-300"
+                    className="group flex items-center text-neutral-400 transition-colors duration-300 hover:text-accent-400"
                   >
-                    <span className="bg-accent-400 mr-0 h-px w-0 transition-all duration-300 group-hover:mr-2 group-hover:w-4"></span>
+                    <span className="mr-0 h-px w-0 bg-accent-400 transition-all duration-300 group-hover:mr-2 group-hover:w-4"></span>
                     {item.name}
                   </Link>
                 </li>
@@ -150,9 +150,9 @@ export const Footer = () => {
                 <li key={service.name}>
                   <Link
                     href={service.href}
-                    className="hover:text-accent-400 group flex items-center text-neutral-400 transition-colors duration-300"
+                    className="group flex items-center text-neutral-400 transition-colors duration-300 hover:text-accent-400"
                   >
-                    <span className="bg-accent-400 mr-0 h-px w-0 transition-all duration-300 group-hover:mr-2 group-hover:w-4"></span>
+                    <span className="mr-0 h-px w-0 bg-accent-400 transition-all duration-300 group-hover:mr-2 group-hover:w-4"></span>
                     {service.name}
                   </Link>
                 </li>
@@ -174,7 +174,7 @@ export const Footer = () => {
             <ul className="space-y-4 text-neutral-400">
               <li className="flex items-start">
                 <svg
-                  className="text-accent-400 mr-3 mt-0.5 h-5 w-5"
+                  className="mr-3 mt-0.5 h-5 w-5 text-accent-400"
                   fill="none"
                   viewBox="0 0 24 24"
                   stroke="currentColor"
@@ -196,7 +196,7 @@ export const Footer = () => {
               </li>
               <li className="flex items-start">
                 <svg
-                  className="text-accent-400 mr-3 mt-0.5 h-5 w-5"
+                  className="mr-3 mt-0.5 h-5 w-5 text-accent-400"
                   fill="none"
                   viewBox="0 0 24 24"
                   stroke="currentColor"
@@ -212,7 +212,7 @@ export const Footer = () => {
               </li>
               <li className="flex items-start">
                 <svg
-                  className="text-accent-400 mr-3 mt-0.5 h-5 w-5"
+                  className="mr-3 mt-0.5 h-5 w-5 text-accent-400"
                   fill="none"
                   viewBox="0 0 24 24"
                   stroke="currentColor"
@@ -240,7 +240,7 @@ export const Footer = () => {
               transition: { duration: 0.8, delay: 0.4 },
             },
           }}
-          className="via-primary-500/50 my-10 h-px w-full bg-gradient-to-r from-transparent to-transparent"
+          className="my-10 h-px w-full bg-gradient-to-r from-transparent via-primary-500/50 to-transparent"
         />
 
         {/* Bottom Section */}
@@ -256,13 +256,13 @@ export const Footer = () => {
           <div className="mt-4 flex space-x-6 md:mt-0">
             <Link
               href="/privacy-policy"
-              className="hover:text-accent-400 transition-colors duration-300"
+              className="transition-colors duration-300 hover:text-accent-400"
             >
               {t("footer.privacyPolicy")}
             </Link>
             <Link
               href="/terms-of-service"
-              className="hover:text-accent-400 transition-colors duration-300"
+              className="transition-colors duration-300 hover:text-accent-400"
             >
               {t("footer.termsOfService")}
             </Link>
@@ -271,9 +271,9 @@ export const Footer = () => {
       </div>
 
       {/* Bottom animated gradient */}
-      <div className="from-primary-600 via-accent-500 to-primary-600 mt-6 h-1 w-full bg-gradient-to-r">
+      <div className="mt-6 h-1 w-full bg-gradient-to-r from-primary-600 via-accent-500 to-primary-600">
         <motion.div
-          className="bg-accent-400 h-full w-1/2"
+          className="h-full w-1/2 bg-accent-400"
           animate={{ x: ["-100%", "200%"] }}
           transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
         />
