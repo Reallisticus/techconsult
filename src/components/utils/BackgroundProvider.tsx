@@ -32,29 +32,38 @@ export const BackgroundProvider = ({ children }: BackgroundProviderProps) => {
 
   useEffect(() => {
     setMounted(true);
+
+    document.documentElement.style.background = "transparent";
+    document.body.style.background = "transparent";
+
     return () => setMounted(false);
   }, []);
-
   return (
     <>
       <div
         ref={backgroundRef}
         className="fixed-background"
         style={{
-          opacity: isVisible ? opacity : 0,
-          transform: `scale(${zoom})`,
-          visibility: isVisible ? "visible" : "hidden",
-          zIndex: "-1000", // Explicitly set z-index here to ensure it's applied
+          position: "fixed",
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          width: "100vw",
+          height: "100vh",
+          zIndex: "-1000",
+          opacity: 1,
+          visibility: "visible",
         }}
       >
         {mounted && <HeroBackground />}
 
-        {/* Overlay gradient */}
+        {/* Semi-transparent overlay gradient */}
         <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/50 via-primary-900/30 to-black/70" />
       </div>
 
-      {/* Main content */}
-      {children}
+      {/* Ensure content sections have transparent backgrounds */}
+      <div className="relative">{children}</div>
     </>
   );
 };

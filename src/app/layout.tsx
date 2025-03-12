@@ -5,7 +5,7 @@ import { MotionConfig } from "framer-motion";
 import { TRPCReactProvider } from "~/trpc/react";
 import { cn } from "../lib/utils";
 import { Footer } from "../components/layout/footer";
-import { SmoothScroll } from "~/components/providers/scroll-provider";
+// import { SmoothScroll } from "~/components/providers/scroll-provider";
 import { Navbar } from "../components/layout/navbar";
 import { LanguageProvider } from "~/i18n/context";
 import { ptSans, roboto, silkscreen, spaceGrotesk } from "~/lib/fonts";
@@ -27,19 +27,17 @@ export default function RootLayout({
           }
         `}</style>
       </head>
-      <body className="overflow-x-hidden bg-neutral-950 text-white">
+      <body className="overflow-x-hidden text-white">
         <LanguageProvider defaultLanguage="en">
           <FontManager>
             <MotionConfig reducedMotion="user">
-              <SmoothScroll>
-                <BackgroundProvider>
-                  <Navbar />
-                  <main className="relative z-10">
-                    <TRPCReactProvider>{children}</TRPCReactProvider>
-                  </main>
-                  <Footer />
-                </BackgroundProvider>
-              </SmoothScroll>
+              <BackgroundProvider>
+                <Navbar />
+                <main className="relative z-10">
+                  <TRPCReactProvider>{children}</TRPCReactProvider>
+                </main>
+                <Footer />
+              </BackgroundProvider>
             </MotionConfig>
           </FontManager>
         </LanguageProvider>

@@ -5,22 +5,22 @@
 :root {
   --cursor-color: 192, 38, 211;
 }
+body,
+html {
+  background: transparent !important;
+}
 
-html,
-body {
-  min-height: 100vh;
-  overflow-x: hidden;
+section {
+  background-color: transparent !important;
   position: relative;
-  scroll-behavior: smooth;
+  z-index: 1;
+}
+
+.services-section,
+.hero-section,
+.cta-section {
   background-color: transparent !important;
 }
-
-/* Ensure main content is higher than background */
-main {
-  position: relative;
-  z-index: 10;
-}
-
 /* Fix for canvas issues */
 canvas.three-background {
   width: 100vw !important;
@@ -41,12 +41,6 @@ canvas.three-background {
   left: 0 !important;
   z-index: -1000 !important;
   pointer-events: none;
-}
-/* Fix for sections to ensure proper layering */
-section {
-  position: relative;
-  z-index: 1;
-  background-color: transparent;
 }
 
 /* Custom cursor effect */

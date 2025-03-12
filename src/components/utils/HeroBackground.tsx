@@ -788,14 +788,17 @@ export const HeroBackground = () => {
   }, []);
 
   return (
-    <div className="h-screen w-screen" ref={containerRef}>
+    <div className="fixed inset-0 z-[-1000] h-full w-full" ref={containerRef}>
       <canvas
         ref={canvasRef}
-        className="block h-screen w-screen"
+        className="fixed inset-0 h-full w-full"
         style={{
-          position: "absolute",
+          position: "fixed",
           top: 0,
           left: 0,
+          width: "100%",
+          height: "100%",
+          zIndex: -1,
         }}
       />
     </div>

@@ -1,12 +1,8 @@
 "use client";
 
 import { useRef, useEffect, useState } from "react";
-import Link from "next/link";
-import { motion } from "framer-motion";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/dist/ScrollTrigger";
-import { Magnetic } from "~/components/ui/magnetic";
-import { HeroBackground } from "~/components/utils/HeroBackground";
 import { Button } from "../ui/button";
 import { useLanguage } from "~/i18n/context";
 import { getDisplayFontClass } from "~/lib/fonts";
@@ -50,9 +46,9 @@ export const Hero = () => {
   }, [imagesLoaded]);
 
   return (
-    <div ref={heroRef} className="hero-section relative">
+    <section className="relative min-h-screen w-full overflow-hidden bg-transparent">
       {/* Main Hero Section */}
-      <section className="relative min-h-screen w-full overflow-hidden">
+      <div className="relative min-h-screen w-full overflow-hidden">
         {/* Background - Adding the hero-background class for zoom targeting */}
 
         <div
@@ -113,7 +109,7 @@ export const Hero = () => {
             </div>
           </div>
         </div>
-      </section>
-    </div>
+      </div>
+    </section>
   );
 };
