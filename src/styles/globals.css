@@ -8,11 +8,11 @@
 
 html,
 body {
-  height: 100%;
+  min-height: 100vh;
   overflow-x: hidden;
   position: relative;
-  @apply bg-neutral-950 text-white;
   scroll-behavior: smooth;
+  background-color: transparent !important;
 }
 
 /* Ensure main content is higher than background */
@@ -28,6 +28,7 @@ canvas.three-background {
   position: fixed !important;
   top: 0 !important;
   left: 0 !important;
+  object-fit: cover !important;
   pointer-events: none;
 }
 
@@ -41,11 +42,11 @@ canvas.three-background {
   z-index: -1000 !important;
   pointer-events: none;
 }
-
 /* Fix for sections to ensure proper layering */
 section {
   position: relative;
   z-index: 1;
+  background-color: transparent;
 }
 
 /* Custom cursor effect */

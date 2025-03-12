@@ -28,7 +28,7 @@ export const ServicesSection = () => {
   ];
 
   return (
-    <section className="relative z-10 py-24">
+    <section className="relative z-10 bg-transparent py-24">
       <div className="container mx-auto px-4">
         <ScrollReveal direction="up" threshold={0.2}>
           <div className="mb-16 text-center">

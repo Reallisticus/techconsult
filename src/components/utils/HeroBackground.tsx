@@ -36,6 +36,7 @@ export const HeroBackground = () => {
   useEffect(() => {
     if (!canvasRef.current) return;
     const performanceLevel = getPerformanceLevel();
+
     // Create a more robust PRNG with better state management
     const colorSeed = Date.now();
     let randState = colorSeed;
@@ -727,16 +728,49 @@ export const HeroBackground = () => {
 
     // Handle resize
     const handleResize = () => {
-      camera.aspect = window.innerWidth / window.innerHeight;
-      camera.updateProjectionMatrix();
+      if (!canvasRef.current || !renderer || !camera) return;
+
+      // Set proper canvas dimensions matching the viewport
       renderer.setSize(window.innerWidth, window.innerHeight);
-      composer.setSize(window.innerWidth, window.innerHeight);
+
+      // Maintain correct pixel ratio for high-DPI displays
+      const pixelRatio = Math.min(window.devicePixelRatio, 2);
+      renderer.setPixelRatio(pixelRatio);
+
+      // Update camera aspect ratio
+      if (camera instanceof THREE.PerspectiveCamera) {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+      }
+
+      // Force a render to update view
+      if (composer) {
+        composer.setSize(window.innerWidth, window.innerHeight);
+        composer.render();
+      }
+    };
+    const handleScroll = () => {
+      // Keep the canvas fixed in the viewport
+      if (canvasRef.current) {
+        canvasRef.current.style.position = "fixed";
+        canvasRef.current.style.top = "0";
+        canvasRef.current.style.left = "0";
+        canvasRef.current.style.width = "100vw";
+        canvasRef.current.style.height = "100vh";
+      }
     };
 
     window.addEventListener("resize", handleResize);
+    window.addEventListener("scroll", handleScroll);
+
+    // Initial setup
+    handleResize();
+    handleScroll();
 
     return () => {
       window.removeEventListener("resize", handleResize);
+      window.removeEventListener("scroll", handleScroll);
+
       renderer.dispose();
       composer.dispose();
       // Dispose geometries and materials

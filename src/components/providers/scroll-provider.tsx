@@ -242,6 +242,19 @@ export const SmoothScroll: React.FC<SmoothScrollProps> = ({ children }) => {
     return () => unsubscribe();
   }, [scrollY, heroHeight, hasZoomed, heroSectionElement, zoomProgress]);
 
+  useEffect(() => {
+    // Prevent background from being affected by zoom
+    if (zoomProgress > 0.1 || hasZoomed) {
+      // Force background to stay visible during and after zoom
+      const backgroundElement = document.querySelector(".fixed-background");
+      if (backgroundElement instanceof HTMLElement) {
+        backgroundElement.style.visibility = "visible";
+        backgroundElement.style.opacity = "1";
+        backgroundElement.style.zIndex = "-1000";
+      }
+    }
+  }, [zoomProgress, isZooming, hasZoomed]);
+
   // Apply the zoom effect to the hero background
   useEffect(() => {
     if (!heroSectionElement || !isZooming) return;
@@ -283,6 +296,18 @@ export const SmoothScroll: React.FC<SmoothScrollProps> = ({ children }) => {
       });
     }
   }, [zoomProgress, isZooming, heroSectionElement, servicesSectionElement]);
+
+  useEffect(() => {
+    // This ensures the background remains visible regardless of scroll position
+    const backgroundElement = document.querySelector(".fixed-background");
+    if (backgroundElement && backgroundElement instanceof HTMLElement) {
+      // Force visibility
+      backgroundElement.style.opacity = "1";
+      backgroundElement.style.visibility = "visible";
+    }
+
+    return () => {};
+  }, [scrollY]); // Re-run when scroll position changes
 
   // Custom scroll tracking for better visual feedback
   const [direction, setDirection] = useState<"up" | "down" | null>(null);
@@ -344,6 +369,16 @@ export const SmoothScroll: React.FC<SmoothScrollProps> = ({ children }) => {
               ease: "power2.out",
             });
           }
+        }
+
+        // Important: Ensure the main background remains visible
+        const backgroundElement = document.querySelector(".fixed-background");
+        if (backgroundElement) {
+          gsap.to(backgroundElement, {
+            opacity: 1,
+            visibility: "visible",
+            duration: 0.5,
+          });
         }
       }
     });

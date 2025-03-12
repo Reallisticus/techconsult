@@ -37,7 +37,6 @@ export const BackgroundProvider = ({ children }: BackgroundProviderProps) => {
 
   return (
     <>
-      {/* Fixed background element that stays behind all content */}
       <div
         ref={backgroundRef}
         className="fixed-background"
@@ -45,6 +44,7 @@ export const BackgroundProvider = ({ children }: BackgroundProviderProps) => {
           opacity: isVisible ? opacity : 0,
           transform: `scale(${zoom})`,
           visibility: isVisible ? "visible" : "hidden",
+          zIndex: "-1000", // Explicitly set z-index here to ensure it's applied
         }}
       >
         {mounted && <HeroBackground />}
