@@ -1,25 +1,15 @@
 "use client";
 import "~/styles/globals.css";
 
-import { type Metadata } from "next";
 import { MotionConfig } from "framer-motion";
-
 import { TRPCReactProvider } from "~/trpc/react";
 import { cn } from "../lib/utils";
 import { Footer } from "../components/layout/footer";
-import { siteConfig } from "../lib/constants";
 import { SmoothScroll } from "~/components/providers/scroll-provider";
 import { Navbar } from "../components/layout/navbar";
 import { LanguageProvider } from "~/i18n/context";
 import { ptSans, roboto, silkscreen, spaceGrotesk } from "~/lib/fonts";
-
-// export const metadata: Metadata = {
-//   title: {
-//     default: siteConfig.name,
-//     template: `%s | ${siteConfig.name}`,
-//   },
-//   description: siteConfig.description,
-// };
+import { BackgroundProvider } from "../components/utils/BackgroundProvider";
 
 export default function RootLayout({
   children,
@@ -42,11 +32,13 @@ export default function RootLayout({
           <FontManager>
             <MotionConfig reducedMotion="user">
               <SmoothScroll>
-                <Navbar />
-                <main className="flex-1">
-                  <TRPCReactProvider>{children}</TRPCReactProvider>
-                </main>
-                <Footer />
+                <BackgroundProvider>
+                  <Navbar />
+                  <main className="relative z-10">
+                    <TRPCReactProvider>{children}</TRPCReactProvider>
+                  </main>
+                  <Footer />
+                </BackgroundProvider>
               </SmoothScroll>
             </MotionConfig>
           </FontManager>

@@ -16,15 +16,11 @@ export const Hero = () => {
   const { t, language } = useLanguage();
   const heroRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
-  const imageContainerRef = useRef<HTMLDivElement>(null);
-  const overlayRef = useRef<HTMLDivElement>(null);
-  const transitionRef = useRef<HTMLDivElement>(null);
   const [imagesLoaded, setImagesLoaded] = useState(true);
 
   // Get the appropriate display font class based on language
   const displayFontClass = getDisplayFontClass(language);
 
-  // GSAP ScrollTrigger for animations
   useEffect(() => {
     gsap.registerPlugin(ScrollTrigger);
 
@@ -48,28 +44,6 @@ export const Hero = () => {
           delay: 0.3,
         },
       );
-
-      // Scroll-based transition animation
-      // ScrollTrigger.create({
-      //   trigger: heroRef.current,
-      //   start: "80% center",
-      //   end: "bottom top",
-      //   scrub: true,
-      //   onUpdate: (self) => {
-      //     // Clip-path transition effect
-      //     if (transitionRef.current) {
-      //       const progress = self.progress;
-      //       const clipValue = `polygon(0% 0%, 100% 0%, 100% ${100 - progress * 100}%, 0% ${100 - progress * 100 + 5}%)`;
-      //       transitionRef.current.style.clipPath = clipValue;
-      //     }
-
-      //     // Parallax content movement
-      //     if (contentRef.current) {
-      //       contentRef.current.style.transform = `translateY(${self.progress * -50}px)`;
-      //       contentRef.current.style.opacity = `${1 - self.progress * 1.5}`;
-      //     }
-      //   },
-      // });
     });
 
     return () => ctx.revert();
@@ -78,17 +52,8 @@ export const Hero = () => {
   return (
     <div ref={heroRef} className="hero-section relative">
       {/* Main Hero Section */}
-      <section
-        ref={transitionRef}
-        className="relative min-h-screen w-full overflow-hidden"
-      >
+      <section className="relative min-h-screen w-full overflow-hidden">
         {/* Background - Adding the hero-background class for zoom targeting */}
-        <div
-          ref={imageContainerRef}
-          className="hero-background absolute inset-0 z-0 h-full w-full transition-transform duration-700"
-        >
-          <HeroBackground />
-        </div>
 
         <div
           ref={contentRef}
@@ -109,10 +74,10 @@ export const Hero = () => {
               <span className="block bg-gradient-to-r from-white to-white/70 bg-clip-text text-transparent">
                 {t("hero.headline2")}
               </span>
-              <span className="via-accent-400/90 block bg-gradient-to-r from-white to-white/70 bg-clip-text text-transparent">
+              <span className="block bg-gradient-to-r from-white via-accent-400/90 to-white/70 bg-clip-text text-transparent">
                 {t("hero.headline3")}
               </span>
-              <span className="from-accent-400/90 block bg-gradient-to-r via-white/90 to-white/70 bg-clip-text text-transparent">
+              <span className="block bg-gradient-to-r from-accent-400/90 via-white/90 to-white/70 bg-clip-text text-transparent">
                 {t("hero.headline4")}
               </span>
             </h1>

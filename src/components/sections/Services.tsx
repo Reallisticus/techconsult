@@ -28,14 +28,11 @@ export const ServicesSection = () => {
   ];
 
   return (
-    <section
-      className="services-section bg-neutral-950 py-24"
-      style={{ opacity: 0 }}
-    >
+    <section className="relative z-10 py-24">
       <div className="container mx-auto px-4">
         <ScrollReveal direction="up" threshold={0.2}>
           <div className="mb-16 text-center">
-            <span className="text-accent-500 font-mono uppercase tracking-wider">
+            <span className="font-mono uppercase tracking-wider text-accent-500">
               {t("services.subtitle")}
             </span>
 
@@ -59,7 +56,7 @@ export const ServicesSection = () => {
             >
               <div className="group relative overflow-hidden rounded-xl bg-gradient-to-b from-neutral-900 to-neutral-950">
                 <div className="flex h-full flex-col p-8">
-                  <div className="bg-primary-800/20 mb-4 flex h-12 w-12 items-center justify-center rounded-lg">
+                  <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-primary-800/20">
                     <svg
                       width="24"
                       height="24"
@@ -77,7 +74,7 @@ export const ServicesSection = () => {
                     </svg>
                   </div>
 
-                  <h3 className="group-hover:text-accent-500 mb-2 text-2xl font-bold transition-colors">
+                  <h3 className="mb-2 text-2xl font-bold transition-colors group-hover:text-accent-500">
                     {service.name}
                   </h3>
 
@@ -88,7 +85,7 @@ export const ServicesSection = () => {
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="text-primary-400 group-hover:text-accent-500 flex items-center p-0 transition-colors"
+                    className="flex items-center p-0 text-primary-400 transition-colors group-hover:text-accent-500"
                   >
                     {t("services.learnMore")}
                     <svg
@@ -111,13 +108,13 @@ export const ServicesSection = () => {
                 </div>
 
                 {/* Gradient border */}
-                <div className="group-hover:border-accent-500/50 absolute inset-0 rounded-xl border border-transparent transition-all duration-300" />
+                <div className="absolute inset-0 rounded-xl border border-transparent transition-all duration-300 group-hover:border-accent-500/50" />
 
                 {/* Corner accents */}
-                <div className="group-hover:border-accent-500 absolute left-0 top-0 h-4 w-4 rounded-tl-xl border-l border-t border-transparent transition-all duration-300" />
-                <div className="group-hover:border-accent-500 absolute right-0 top-0 h-4 w-4 rounded-tr-xl border-r border-t border-transparent transition-all duration-300" />
-                <div className="group-hover:border-accent-500 absolute bottom-0 left-0 h-4 w-4 rounded-bl-xl border-b border-l border-transparent transition-all duration-300" />
-                <div className="group-hover:border-accent-500 absolute bottom-0 right-0 h-4 w-4 rounded-br-xl border-b border-r border-transparent transition-all duration-300" />
+                <div className="absolute left-0 top-0 h-4 w-4 rounded-tl-xl border-l border-t border-transparent transition-all duration-300 group-hover:border-accent-500" />
+                <div className="absolute right-0 top-0 h-4 w-4 rounded-tr-xl border-r border-t border-transparent transition-all duration-300 group-hover:border-accent-500" />
+                <div className="absolute bottom-0 left-0 h-4 w-4 rounded-bl-xl border-b border-l border-transparent transition-all duration-300 group-hover:border-accent-500" />
+                <div className="absolute bottom-0 right-0 h-4 w-4 rounded-br-xl border-b border-r border-transparent transition-all duration-300 group-hover:border-accent-500" />
               </div>
             </ScrollReveal>
           ))}

@@ -1,4 +1,4 @@
-// src/components/canvas/HeroBackground.tsx
+// src/components/utils/HeroBackground.tsx
 import { useRef, useEffect } from "react";
 import * as THREE from "three";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
@@ -12,7 +12,6 @@ import { RGBELoader } from "three/addons/loaders/RGBELoader.js";
 export const HeroBackground = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-  // Add these refs near the top of your component
   const sceneRef = useRef<THREE.Scene | null>(null);
   const cameraRef = useRef<THREE.PerspectiveCamera | null>(null);
 
@@ -755,9 +754,16 @@ export const HeroBackground = () => {
   }, []);
 
   return (
-    <div className="absolute inset-0 -z-10" ref={containerRef}>
-      <canvas ref={canvasRef} className="h-max w-full" />
-      <div className="via-primary-900/30 pointer-events-none absolute inset-0 bg-gradient-to-b from-black/50 to-black/70" />
+    <div className="h-screen w-screen" ref={containerRef}>
+      <canvas
+        ref={canvasRef}
+        className="block h-screen w-screen"
+        style={{
+          position: "absolute",
+          top: 0,
+          left: 0,
+        }}
+      />
     </div>
   );
 };
