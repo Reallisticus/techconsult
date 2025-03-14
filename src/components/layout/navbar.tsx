@@ -5,7 +5,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { motion, useMotionValueEvent, useScroll } from "framer-motion";
 import { cn } from "../../lib/utils";
-import { MagneticButton } from "../ui/magnetic";
+import { Magnetic } from "../ui/magnetic";
 import { Button } from "../ui/button";
 import { LanguageSwitcher } from "../ui/language-switcher";
 import { useLanguage } from "~/i18n/context";
@@ -58,7 +58,7 @@ export const Navbar = () => {
           {/* Desktop Menu */}
           <div className="hidden items-center space-x-6 md:flex">
             {navItems.map((item) => (
-              <MagneticButton key={item.name}>
+              <Magnetic key={item.name}>
                 <Link
                   href={item.href}
                   className="relative text-white transition-colors hover:text-white/80"
@@ -66,7 +66,7 @@ export const Navbar = () => {
                   <span className="relative z-10">{item.name}</span>
                   <span className="absolute bottom-0 left-0 h-[2px] w-0 bg-accent-500 transition-all duration-300 group-hover:w-full"></span>
                 </Link>
-              </MagneticButton>
+              </Magnetic>
             ))}
 
             <LanguageSwitcher variant="full" />

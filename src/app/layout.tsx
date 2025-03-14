@@ -90,26 +90,24 @@ export default function RootLayout({
                   smoothTouch: false,
                 }}
               >
-                <AnimationProvider>
-                  <BackgroundProvider>
-                    {/* Loading overlay */}
-                    {isLoading && <LoadingScreen />}
+                <BackgroundProvider>
+                  {/* Loading overlay */}
+                  {isLoading && <LoadingScreen />}
 
-                    {/* Main app content */}
-                    <div
-                      className={cn(
-                        "transition-opacity duration-500",
-                        isLoading ? "opacity-0" : "opacity-100",
-                      )}
-                    >
-                      <Navbar />
-                      <main className="relative z-10">
-                        <TRPCReactProvider>{children}</TRPCReactProvider>
-                      </main>
-                      <Footer />
-                    </div>
-                  </BackgroundProvider>
-                </AnimationProvider>
+                  {/* Main app content */}
+                  <div
+                    className={cn(
+                      "transition-opacity duration-500",
+                      isLoading ? "opacity-0" : "opacity-100",
+                    )}
+                  >
+                    <Navbar />
+                    <main className="relative z-10">
+                      <TRPCReactProvider>{children}</TRPCReactProvider>
+                    </main>
+                    <Footer />
+                  </div>
+                </BackgroundProvider>
               </SmoothScrollProvider>
             </MotionConfig>
           </FontManager>

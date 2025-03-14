@@ -3,7 +3,7 @@
 
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { MagneticButton } from "./magnetic";
+import { Magnetic } from "./magnetic";
 import { useLanguage, type Language } from "~/i18n/context";
 import { cn } from "~/lib/utils";
 
@@ -63,44 +63,46 @@ export const LanguageSwitcher = ({
 
   return (
     <div className={cn("relative z-50", className)}>
-      <MagneticButton
-        onClick={() => setIsOpen(!isOpen)}
-        className="group flex items-center gap-2 rounded-md p-2 text-white transition-colors hover:text-accent-400"
-        aria-expanded={isOpen}
-        aria-haspopup="true"
-        aria-label={t("common.language")}
-      >
-        {variant !== "text" && (
-          <span className="text-lg">{currentLanguage?.flag}</span>
-        )}
+      <Magnetic strength={10}>
+        <button
+          onClick={() => setIsOpen(!isOpen)}
+          className="group flex items-center gap-2 rounded-md p-2 text-white transition-colors hover:text-accent-400"
+          aria-expanded={isOpen}
+          aria-haspopup="true"
+          aria-label={t("common.language")}
+        >
+          {variant !== "text" && (
+            <span className="text-lg">{currentLanguage?.flag}</span>
+          )}
 
-        {variant !== "icon" && (
-          <>
-            <span className="text-sm font-medium">
-              {currentLanguage?.code.toUpperCase()}
-            </span>
+          {variant !== "icon" && (
+            <>
+              <span className="text-sm font-medium">
+                {currentLanguage?.code.toUpperCase()}
+              </span>
 
-            <svg
-              width="16"
-              height="16"
-              viewBox="0 0 16 16"
-              fill="none"
-              className={cn(
-                "transition-transform duration-200",
-                isOpen ? "rotate-180" : "",
-              )}
-            >
-              <path
-                d="M4 6L8 10L12 6"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-          </>
-        )}
-      </MagneticButton>
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 16 16"
+                fill="none"
+                className={cn(
+                  "transition-transform duration-200",
+                  isOpen ? "rotate-180" : "",
+                )}
+              >
+                <path
+                  d="M4 6L8 10L12 6"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </>
+          )}
+        </button>
+      </Magnetic>
 
       {/* Dropdown menu */}
       <motion.div

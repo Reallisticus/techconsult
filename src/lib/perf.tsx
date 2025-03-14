@@ -1,5 +1,6 @@
+// src/lib/perf.tsx
 "use client";
-// src/lib/performance.ts
+
 import { useEffect, useState } from "react";
 
 /**
@@ -259,22 +260,16 @@ export function PerformanceGate({
   minLevel?: PerformanceLevel;
   fallback?: React.ReactNode;
 }) {
-  // Add state to track if we're on the client
+  // Always call all hooks unconditionally
   const [isClient, setIsClient] = useState(false);
+  const { level } = usePerformance();
 
   // Set isClient to true when component mounts (client-side only)
   useEffect(() => {
     setIsClient(true);
   }, []);
 
-  // If we're not on the client yet, render fallback or null
-  if (!isClient) {
-    return fallback ? <>{fallback}</> : null;
-  }
-
-  // Now we're on the client, safe to run performance checks
-  const { level } = usePerformance();
-
+  // Calculate requirement score outside conditional rendering
   const levelScores: Record<PerformanceLevel, number> = {
     low: 0,
     medium: 1,
@@ -283,5 +278,11 @@ export function PerformanceGate({
 
   const meetsRequirement = levelScores[level] >= levelScores[minLevel];
 
+  // If not client-side yet, show fallback or nothing
+  if (!isClient) {
+    return fallback ? <>{fallback}</> : null;
+  }
+
+  // When client-side, show children if performance meets requirement
   return <>{meetsRequirement ? children : fallback}</>;
 }
