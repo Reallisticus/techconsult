@@ -5,7 +5,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { motion, useMotionValueEvent, useScroll } from "framer-motion";
 import { cn } from "../../lib/utils";
-import { Magnetic } from "../ui/magnetic";
+import { MagneticButton } from "../ui/magnetic";
 import { Button } from "../ui/button";
 import { LanguageSwitcher } from "../ui/language-switcher";
 import { useLanguage } from "~/i18n/context";
@@ -50,7 +50,7 @@ export const Navbar = () => {
         <div className="mx-auto flex max-w-7xl items-center justify-between">
           {/* Logo */}
           <Link href="/">
-            <h1 className="from-primary-500 to-secondary-500 bg-gradient-to-r bg-clip-text text-2xl font-bold text-transparent">
+            <h1 className="bg-gradient-to-r from-primary-500 to-secondary-500 bg-clip-text text-2xl font-bold text-transparent">
               TechConsult.BG
             </h1>
           </Link>
@@ -58,15 +58,15 @@ export const Navbar = () => {
           {/* Desktop Menu */}
           <div className="hidden items-center space-x-6 md:flex">
             {navItems.map((item) => (
-              <Magnetic key={item.name} strength={15}>
+              <MagneticButton key={item.name}>
                 <Link
                   href={item.href}
                   className="relative text-white transition-colors hover:text-white/80"
                 >
                   <span className="relative z-10">{item.name}</span>
-                  <span className="bg-accent-500 absolute bottom-0 left-0 h-[2px] w-0 transition-all duration-300 group-hover:w-full"></span>
+                  <span className="absolute bottom-0 left-0 h-[2px] w-0 bg-accent-500 transition-all duration-300 group-hover:w-full"></span>
                 </Link>
-              </Magnetic>
+              </MagneticButton>
             ))}
 
             <LanguageSwitcher variant="full" />
@@ -117,7 +117,7 @@ export const Navbar = () => {
           x: isOpen ? 0 : "100%",
         }}
         transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-        className="from-primary-900 to-primary-800 fixed inset-0 z-40 flex flex-col justify-center bg-gradient-to-b"
+        className="fixed inset-0 z-40 flex flex-col justify-center bg-gradient-to-b from-primary-900 to-primary-800"
       >
         <div className="container px-8">
           <div className="flex flex-col space-y-6 text-white">
@@ -137,7 +137,7 @@ export const Navbar = () => {
                 <Link
                   href={item.href}
                   onClick={() => setIsOpen(false)}
-                  className="hover:text-accent-400 text-3xl font-medium transition-colors"
+                  className="text-3xl font-medium transition-colors hover:text-accent-400"
                 >
                   {item.name}
                 </Link>
@@ -154,7 +154,7 @@ export const Navbar = () => {
                 duration: 0.5,
               }}
             >
-              <button className="bg-accent-500 mt-6 rounded-full px-8 py-3 text-lg font-medium text-white">
+              <button className="mt-6 rounded-full bg-accent-500 px-8 py-3 text-lg font-medium text-white">
                 {t("nav.letsTalk")}
               </button>
             </motion.div>

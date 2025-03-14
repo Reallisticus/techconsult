@@ -1,551 +1,337 @@
 // src/components/utils/HeroBackground.tsx
-import { useRef, useEffect } from "react";
+"use client";
+
+import { useRef, useEffect, useMemo } from "react";
 import * as THREE from "three";
-import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
-import { DRACOLoader } from "three/addons/loaders/DRACOLoader.js";
 import { EffectComposer } from "three/addons/postprocessing/EffectComposer.js";
 import { RenderPass } from "three/addons/postprocessing/RenderPass.js";
 import { UnrealBloomPass } from "three/addons/postprocessing/UnrealBloomPass.js";
-import { OutlinePass } from "three/addons/postprocessing/OutlinePass.js";
-import { RGBELoader } from "three/addons/loaders/RGBELoader.js";
+import { usePerformance, PerformanceLevel } from "~/lib/perf";
 
-export const HeroBackground = () => {
+export const HeroBackground: React.FC = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const animationRef = useRef<number | null>(null);
   const sceneRef = useRef<THREE.Scene | null>(null);
-  const cameraRef = useRef<THREE.PerspectiveCamera | null>(null);
+  const rendererRef = useRef<THREE.WebGLRenderer | null>(null);
+  const composerRef = useRef<EffectComposer | null>(null);
+  const groupRef = useRef<THREE.Group | null>(null);
 
-  function getPerformanceLevel() {
-    const gpu = (navigator as any).gpu;
-    const mobile =
-      /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
-        navigator.userAgent,
-      );
+  // Get performance settings
+  const { level, pixelRatio, quality3D } = usePerformance();
 
-    if (mobile) return "low";
-    if (gpu && gpu.requestAdapter) return "high";
+  // Define particles count based on performance level
+  const particleCounts = useMemo(
+    () => ({
+      low: 50,
+      medium: 100,
+      high: 150,
+    }),
+    [],
+  );
 
-    // Check general performance metrics
-    const memoryPerformance = (navigator as any).deviceMemory || 4;
-    const cpuCores = navigator.hardwareConcurrency || 4;
+  // Seeded random generator for deterministic values
+  const seededRandom = (seed: number) => {
+    let state = seed;
+    return () => {
+      state = (state * 9301 + 49297) % 233280;
+      return state / 233280;
+    };
+  };
 
-    if (memoryPerformance <= 4 || cpuCores <= 4) return "medium";
-    return "high";
-  }
-
+  // Initialize the 3D scene with memory management
   useEffect(() => {
     if (!canvasRef.current) return;
-    const performanceLevel = getPerformanceLevel();
 
-    // Create a more robust PRNG with better state management
-    const colorSeed = Date.now();
-    let randState = colorSeed;
-
-    const seededRandom = () => {
-      randState = (randState * 9301 + 49297) % 233280;
-      return randState / 233280;
-    };
+    // Create a robust PRNG
+    const seed = Date.now();
+    const randomizer = seededRandom(seed);
 
     // Enhanced color palette
-    const colorOptions = [
-      new THREE.Color("#7C3AED").convertSRGBToLinear(), // Violet
-      new THREE.Color("#A78BFA").convertSRGBToLinear(), // Light violet
-      new THREE.Color("#60A5FA").convertSRGBToLinear(), // Blue
-      new THREE.Color("#34D399").convertSRGBToLinear(), // Green
-    ];
-
-    const getRandomColor = () => {
-      const colorIndex = Math.floor(seededRandom() * colorOptions.length);
-      return colorOptions[colorIndex]!;
+    const colorPalette = {
+      primary: [
+        new THREE.Color("#2563EB").convertSRGBToLinear(), // Royal blue
+        new THREE.Color("#60A5FA").convertSRGBToLinear(), // Light blue
+      ],
+      accent: [
+        new THREE.Color("#7C3AED").convertSRGBToLinear(), // Violet
+        new THREE.Color("#A78BFA").convertSRGBToLinear(), // Light violet
+      ],
+      secondary: [
+        new THREE.Color("#059669").convertSRGBToLinear(), // Emerald
+        new THREE.Color("#34D399").convertSRGBToLinear(), // Light emerald
+      ],
     };
 
-    // Initialize colors array INSIDE useEffect
-    const colors: THREE.Color[] = [];
-    const positions: number[] = [];
+    // Get random color from our palette
+    const getRandomColor = () => {
+      const palettes = [
+        colorPalette.primary,
+        colorPalette.accent,
+        colorPalette.secondary,
+      ];
+      const selectedPalette =
+        palettes[Math.floor(randomizer() * palettes.length)]!;
+      const colorIndex = Math.floor(randomizer() * selectedPalette.length);
+      return selectedPalette[colorIndex]!;
+    };
 
+    // Initialize scene
     const scene = new THREE.Scene();
     sceneRef.current = scene;
 
+    // Camera with good defaults
     const camera = new THREE.PerspectiveCamera(
       75,
       window.innerWidth / window.innerHeight,
       0.1,
-      1000,
+      100,
     );
-    cameraRef.current = camera;
+    camera.position.z = 50;
 
-    camera.position.z = 45;
-
-    // Enhanced renderer with shadow support
+    // Configure renderer based on performance level
     const renderer = new THREE.WebGLRenderer({
       canvas: canvasRef.current,
       alpha: true,
-      antialias: performanceLevel !== "low",
+      antialias: level !== "low",
+      powerPreference: "high-performance",
+      stencil: false,
+      depth: true,
     });
+
+    // Set appropriate pixel ratio based on performance
+    renderer.setPixelRatio(pixelRatio ?? window.devicePixelRatio);
     renderer.setSize(window.innerWidth, window.innerHeight);
-    renderer.setPixelRatio(
-      Math.min(
-        window.devicePixelRatio,
-        performanceLevel === "low"
-          ? 1
-          : performanceLevel === "medium"
-            ? 1.5
-            : 2,
-      ),
-    );
-    renderer.shadowMap.enabled = performanceLevel !== "low";
-    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-    renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 1.2;
+    renderer.setClearColor(0x000000, 0);
 
-    // Load HDR environment map - progressive approach
-    const loadHDR = () => {
-      const rgbeLoader = new RGBELoader();
-      rgbeLoader.setPath("/textures/");
+    // Enable shadows only for higher performance levels
+    if (level !== "low") {
+      renderer.shadowMap.enabled = true;
+      renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    }
 
-      // First load low-res version
-      const lowResPromise = new Promise<THREE.Texture>((resolve) => {
-        rgbeLoader.load("studio_small_08_1k.hdr", (texture) => {
-          texture.mapping = THREE.EquirectangularReflectionMapping;
-          resolve(texture);
-        });
-      });
+    rendererRef.current = renderer;
 
-      // Then load high-res if needed
-      const highResPromise =
-        performanceLevel === "low"
-          ? null
-          : new Promise<THREE.Texture>((resolve) => {
-              rgbeLoader.load(
-                `studio_small_08_${performanceLevel === "medium" ? "4k" : "8k"}.hdr`,
-                (texture) => {
-                  texture.mapping = THREE.EquirectangularReflectionMapping;
-                  resolve(texture);
-                },
-              );
-            });
+    // Post-processing setup with performance tiering
+    const createPostProcessing = () => {
+      if (!renderer) return null;
 
-      return { lowResPromise, highResPromise };
-    };
-
-    const { lowResPromise, highResPromise } = loadHDR();
-    lowResPromise.then((texture) => {
-      scene.environment = texture;
-      console.log("Low-res HDR environment loaded");
-
-      if (highResPromise) {
-        highResPromise.then((highResTexture) => {
-          scene.environment = highResTexture;
-          console.log("High-res HDR environment loaded");
-        });
-      }
-    });
-
-    const setupPostProcessing = () => {
       const composer = new EffectComposer(renderer);
-      composer.addPass(new RenderPass(scene, camera));
-      let outlinePass: OutlinePass | null = null;
+      const renderPass = new RenderPass(scene, camera);
+      composer.addPass(renderPass);
 
-      if (performanceLevel !== "low") {
-        // Bloom with settings based on performance
-        const bloomStrength = performanceLevel === "high" ? 0.4 : 0.3;
-        const bloomRadius = performanceLevel === "high" ? 0.7 : 0.5;
+      // Add bloom pass only for medium and high performance
+      if (level !== "low") {
+        // Configure bloom based on performance level
+        const bloomStrength = level === "high" ? 0.4 : 0.2;
+        const bloomRadius = level === "high" ? 0.7 : 0.4;
+        const resolution = new THREE.Vector2(
+          window.innerWidth * (pixelRatio ?? window.devicePixelRatio),
+          window.innerHeight * (pixelRatio ?? window.devicePixelRatio),
+        );
+
         const bloomPass = new UnrealBloomPass(
-          new THREE.Vector2(window.innerWidth, window.innerHeight),
+          resolution,
           bloomStrength,
           bloomRadius,
-          0.2,
+          0.1,
         );
         composer.addPass(bloomPass);
-
-        // Only add outline pass on high performance
-        if (performanceLevel === "high") {
-          outlinePass = new OutlinePass(
-            new THREE.Vector2(window.innerWidth, window.innerHeight),
-            scene,
-            camera,
-          );
-          outlinePass.edgeStrength = 3.0;
-          outlinePass.edgeGlow = 0.3;
-          outlinePass.edgeThickness = 1.0;
-          outlinePass.visibleEdgeColor.set(0x88ccff);
-          outlinePass.hiddenEdgeColor.set(0x333333);
-          composer.addPass(outlinePass);
-        }
       }
 
-      return { composer, outlinePass };
+      return composer;
     };
 
-    const { composer, outlinePass } = setupPostProcessing();
+    const composer = createPostProcessing();
+    composerRef.current = composer;
 
-    // Track objects to highlight
-    const highlightedObjects: THREE.Object3D[] = [];
+    // Lighting with performance tiering
+    scene.add(new THREE.AmbientLight(0x111122, level === "low" ? 0.3 : 0.5));
 
-    // Advanced lighting setup
-    scene.add(new THREE.AmbientLight(0x111122, 0.4));
+    // Directional light
+    const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
+    directionalLight.position.set(5, 10, 7);
 
-    const directionalLight = new THREE.DirectionalLight(0xffffff, 1.2);
-    directionalLight.position.set(5, 10, 5);
-    directionalLight.castShadow = performanceLevel !== "low";
-    if (directionalLight.castShadow) {
-      directionalLight.shadow.mapSize.width =
-        performanceLevel === "high" ? 1024 : 512;
-      directionalLight.shadow.mapSize.height =
-        performanceLevel === "high" ? 1024 : 512;
+    // Enable shadows only on higher performance levels
+    if (level !== "low") {
+      directionalLight.castShadow = true;
+      directionalLight.shadow.mapSize.width = level === "high" ? 1024 : 512;
+      directionalLight.shadow.mapSize.height = level === "high" ? 1024 : 512;
     }
+
     scene.add(directionalLight);
 
-    const purpleLight = new THREE.PointLight(0x7c3aed, 1.5, 100);
+    // Accent lights for visual interest
+    const purpleLight = new THREE.PointLight(0x7c3aed, 1, 100);
     purpleLight.position.set(-15, 10, 10);
     scene.add(purpleLight);
 
-    const greenLight = new THREE.PointLight(0x34d399, 1.5, 100);
+    const greenLight = new THREE.PointLight(0x34d399, 1, 100);
     greenLight.position.set(15, -10, 10);
     scene.add(greenLight);
 
-    const backLight = new THREE.SpotLight(0x2233ff, 0.8);
-    backLight.position.set(0, 0, -20);
-    backLight.target.position.set(0, 0, 0);
-    scene.add(backLight);
-    scene.add(backLight.target);
+    // Group to hold all generated elements
+    const group = new THREE.Group();
+    scene.add(group);
+    groupRef.current = group;
 
-    // Define particle distribution
-    const count =
-      performanceLevel === "low"
-        ? 40
-        : performanceLevel === "medium"
-          ? 70
-          : 100;
+    // Generate positions for nodes with good distribution
+    const positions: THREE.Vector3[] = [];
+    const particleCount = particleCounts[level];
+    const minDistance = 7; // Minimum distance between particles
 
-    const minDistance = 6;
-
-    // Generate position function
-    const generatePosition = () => {
-      const radius = 31;
-      const theta = seededRandom() * Math.PI * 2;
-      const phi = Math.acos(seededRandom() * 2 - 1);
-
-      return [
-        radius * Math.sin(phi) * Math.cos(theta),
-        radius * Math.sin(phi) * Math.sin(theta) - 5,
-        radius * Math.cos(phi),
-      ];
-    };
-
-    // Check distance function
-    const isTooClose = (pos: number[]) => {
-      for (let i = 0; i < positions.length; i += 3) {
-        const dx = pos[0]! - positions[i]!;
-        const dy = pos[1]! - positions[i + 1]!;
-        const dz = pos[2]! - positions[i + 2]!;
-        const distanceSquared = dx * dx + dy * dy + dz * dz;
-
-        if (distanceSquared < minDistance * minDistance) {
-          return true;
-        }
-      }
-      return false;
-    };
-
-    // Generate positions
-    for (let i = 0; i < count; i++) {
-      let pos: number[];
+    // Generate properly distributed positions
+    for (let i = 0; i < particleCount; i++) {
+      let position: THREE.Vector3;
       let attempts = 0;
-      const maxAttempts = 100;
+      const maxAttempts = 50;
 
+      // Try to find a non-overlapping position
       do {
-        pos = generatePosition();
-        attempts++;
-        if (attempts > maxAttempts) {
-          console.warn(
-            `Couldn't find non-overlapping position after ${maxAttempts} attempts`,
-          );
-          break;
-        }
-      } while (positions.length > 0 && isTooClose(pos));
+        // Spherical distribution for better visual balance
+        const radius = 30 + randomizer() * 10;
+        const theta = randomizer() * Math.PI * 2;
+        const phi = Math.acos(2 * randomizer() - 1);
 
-      positions.push(...pos);
-      colors.push(getRandomColor()); // Use your seeded random color generator
+        position = new THREE.Vector3(
+          radius * Math.sin(phi) * Math.cos(theta),
+          radius * Math.sin(phi) * Math.sin(theta) - 5,
+          radius * Math.cos(phi) * 0.5,
+        );
+
+        attempts++;
+
+        // Break loop if we've tried too many times
+        if (attempts > maxAttempts) break;
+
+        // Check distance from all existing particles
+      } while (positions.some((p) => p.distanceTo(position!) < minDistance));
+
+      positions.push(position!);
     }
 
-    // Setup GLTF loader
-    const loader = new GLTFLoader();
-    const dracoLoader = new DRACOLoader();
-    dracoLoader.setDecoderPath(
-      "https://www.gstatic.com/draco/versioned/decoders/1.5.6/",
+    // Create node geometries
+    const nodeGeometry = new THREE.SphereGeometry(
+      0.8,
+      level === "low" ? 8 : level === "medium" ? 16 : 24,
+      level === "low" ? 8 : level === "medium" ? 16 : 24,
     );
-    loader.setDRACOLoader(dracoLoader);
 
-    // Create dummy for instancing
-    const dummy = new THREE.Object3D();
-    const instancedMeshes: THREE.InstancedMesh[] = [];
-
-    // Define enhanced materials
-    const materials = {
-      primary: new THREE.MeshPhysicalMaterial({
-        color: 0x333340, // Dark blue-gray instead of black
-        metalness: 0.9,
-        roughness: 0.3,
-        envMapIntensity: 1.0,
-        clearcoat: 0.5, // Add clearcoat for shine
-        clearcoatRoughness: 0.2,
+    // Create node materials with performance-based detail
+    const nodeMaterials = [
+      new THREE.MeshPhysicalMaterial({
+        color: 0x2563eb,
+        metalness: 0.8,
+        roughness: 0.2,
+        emissive: 0x2563eb,
+        emissiveIntensity: 0.2,
       }),
-      secondary: new THREE.MeshPhysicalMaterial({
-        color: 0x555555,
-        metalness: 1.0,
-        roughness: 0.1,
-        envMapIntensity: 1.2,
-        reflectivity: 1.0,
+      new THREE.MeshPhysicalMaterial({
+        color: 0x7c3aed,
+        metalness: 0.8,
+        roughness: 0.2,
+        emissive: 0x7c3aed,
+        emissiveIntensity: 0.2,
       }),
-      accent: new THREE.MeshPhysicalMaterial({
-        color: 0x222222,
-        emissive: 0x3311aa,
-        emissiveIntensity: 1.2, // Increased intensity
-        metalness: 0.9,
-        roughness: 0.1,
-        clearcoat: 1.0, // Maximum clearcoat
-        clearcoatRoughness: 0.0,
+      new THREE.MeshPhysicalMaterial({
+        color: 0x059669,
+        metalness: 0.8,
+        roughness: 0.2,
+        emissive: 0x059669,
+        emissiveIntensity: 0.2,
       }),
-    };
+    ];
 
-    // Load the model
-    loader.load("/models/scene.gltf", (gltf) => {
-      console.log("Model loaded successfully");
+    // Create nodes and add to group
+    const nodes: THREE.Mesh[] = positions.map((position, i) => {
+      const materialIndex = i % nodeMaterials.length;
+      const node = new THREE.Mesh(
+        nodeGeometry,
+        nodeMaterials[materialIndex]!.clone(),
+      );
+      node.position.copy(position);
+      node.userData = {
+        originalPosition: position.clone(),
+        pulsatePhase: randomizer() * Math.PI * 2,
+        pulsateSpeed: 0.5 + randomizer() * 0.5,
+        rotateSpeed: 0.2 + randomizer() * 0.3,
+      };
 
-      // Process each mesh in the model
-      let meshIndex = 0;
-      gltf.scene.traverse((child) => {
-        if (child instanceof THREE.Mesh) {
-          // Analyze geometry to determine best material
-          const geometry = child.geometry;
-          const boxSize = new THREE.Box3()
-            .setFromObject(child)
-            .getSize(new THREE.Vector3());
-
-          // Choose material strategy based on geometry characteristics
-          let material;
-          if (boxSize.z > boxSize.x * 1.5 || boxSize.y > boxSize.x * 1.5) {
-            // Long/tall parts - likely structural
-            material = materials.secondary.clone();
-          } else if (geometry.attributes.position.count < 100) {
-            // Small detail parts - likely accents
-            material = materials.accent.clone();
-            highlightedObjects.push(child); // Add to highlight selection
-          } else {
-            // Default parts
-            material = materials.primary.clone();
-          }
-
-          // Create instanced mesh
-          const instancedMesh = new THREE.InstancedMesh(
-            geometry,
-            material,
-            count,
-          );
-          instancedMesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
-          instancedMesh.castShadow = true;
-          instancedMesh.receiveShadow = true;
-          instancedMeshes.push(instancedMesh);
-          scene.add(instancedMesh);
-
-          meshIndex++;
-        }
-      });
-
-      // Store accent colors for animation
-      const accentColors = colors.map((color) => color.clone());
-
-      // Position each instance
-      for (let i = 0; i < count; i++) {
-        dummy.position.set(
-          positions[i * 3]!,
-          positions[i * 3 + 1]!,
-          positions[i * 3 + 2]!,
-        );
-
-        // Add subtle rotation variance
-        dummy.rotation.set(
-          seededRandom() * Math.PI * 0.25,
-          seededRandom() * Math.PI * 2,
-          seededRandom() * Math.PI * 0.25,
-        );
-
-        // Scale variation - slightly larger for better visibility
-        dummy.scale.setScalar(0.1 + seededRandom() * 0.06);
-        dummy.updateMatrix();
-
-        // Apply to all meshes
-        instancedMeshes.forEach((mesh, meshIdx) => {
-          mesh.setMatrixAt(i, dummy.matrix);
-          mesh.instanceMatrix.needsUpdate = true;
-
-          // Color the accent pieces differently for each instance
-          if (meshIdx % 3 === 2) {
-            // Assuming every third mesh is an accent piece
-            const material = mesh.material as THREE.MeshPhysicalMaterial;
-            const newMaterial = material.clone();
-            newMaterial.emissive.copy(accentColors[i % accentColors.length]!);
-            mesh.material = newMaterial;
-          }
-        });
+      // Only enable shadows on higher performance settings
+      if (level !== "low") {
+        node.castShadow = true;
+        node.receiveShadow = true;
       }
 
-      // Update outline pass with highlighted objects
-      if (outlinePass) {
-        outlinePass.selectedObjects = highlightedObjects;
-      }
+      group.add(node);
+      return node;
     });
 
-    // Create more sophisticated connection network
-    const linesGeometry = new THREE.BufferGeometry();
+    // Connection network - with density based on performance level
+    const maxConnections = level === "low" ? 2 : level === "medium" ? 3 : 4;
+    const connectionDistance = level === "low" ? 15 : 20;
+
+    // Track connections to prevent duplicates
+    const connections: Set<string> = new Set();
+    const linesMaterial = new THREE.LineBasicMaterial({
+      vertexColors: true,
+      transparent: true,
+      opacity: 0.6,
+      depthWrite: false,
+    });
+
+    // Create connection positions and colors
     const linePositions: number[] = [];
     const lineColors: number[] = [];
 
-    // Create an array to track connected points
-    const connectedPoints = new Array(count).fill(false);
-    const pointConnections: number[][] = Array(count)
-      .fill(0)
-      .map(() => []);
+    // Connect nearby nodes
+    positions.forEach((p1, i) => {
+      // Find nearby nodes
+      const nearbyNodes = positions
+        .map((p2, j) => ({ index: j, distance: p1.distanceTo(p2) }))
+        .filter(
+          ({ index, distance }) =>
+            index !== i &&
+            distance < connectionDistance &&
+            !connections.has(`${Math.min(i, index)}-${Math.max(i, index)}`),
+        )
+        .sort((a, b) => a.distance - b.distance)
+        .slice(0, maxConnections);
 
-    // First pass: ensure each point has at least one connection to its nearest neighbor
-    const positionVectors: THREE.Vector3[] = [];
-    for (let i = 0; i < positions.length; i += 3) {
-      if (
-        positions[i] !== undefined &&
-        positions[i + 1] !== undefined &&
-        positions[i + 2] !== undefined
-      ) {
-        positionVectors.push(
-          new THREE.Vector3(positions[i], positions[i + 1], positions[i + 2]),
-        );
-      }
-    }
-    const getVector = (
-      vectors: THREE.Vector3[],
-      index: number,
-    ): THREE.Vector3 | null => {
-      return index >= 0 && index < vectors.length ? vectors[index]! : null;
-    };
+      // Create connections
+      nearbyNodes.forEach(({ index }) => {
+        const p2 = positions[index]!;
+        const connectionKey = `${Math.min(i, index)}-${Math.max(i, index)}`;
 
-    // Now ensure we only iterate over valid indices
-    const validCount = positionVectors.length;
-    for (let i = 0; i < validCount; i++) {
-      let nearestIdx = -1;
-      let minDistance = Infinity;
+        // Skip if already connected
+        if (connections.has(connectionKey)) return;
+        connections.add(connectionKey);
 
-      const currentVector = getVector(positionVectors, i);
-      if (!currentVector) continue; // Skip if not found (should never happen with our setup)
-
-      for (let j = 0; j < validCount; j++) {
-        if (i === j) continue;
-
-        const compareVector = getVector(positionVectors, j);
-        if (!compareVector) continue; // Skip if not found
-
-        const distance = currentVector.distanceTo(compareVector);
-        if (distance < minDistance) {
-          minDistance = distance;
-          nearestIdx = j;
-        }
-      }
-
-      if (nearestIdx !== -1) {
-        const p1 = currentVector;
-        const p2 = getVector(positionVectors, nearestIdx);
-
-        if (!p1 || !p2) continue; // Type safety check
-
-        // Add this connection
+        // Add line positions
         linePositions.push(p1.x, p1.y, p1.z, p2.x, p2.y, p2.z);
 
-        // Create a gradient color for this primary connection
-        const lineColor = new THREE.Color("#7C3AED").lerp(
-          new THREE.Color("#34D399"),
-          seededRandom(), // Instead of i / validCount
-        );
+        // Create gradient colors based on node materials
+        const startMaterial = nodeMaterials[i % nodeMaterials.length]!;
+        const endMaterial = nodeMaterials[index % nodeMaterials.length]!;
 
+        // Extract color components
+        const startColor = startMaterial.color.clone();
+        const endColor = endMaterial.color.clone();
+
+        // Set colors
         lineColors.push(
-          lineColor.r,
-          lineColor.g,
-          lineColor.b,
-          lineColor.r,
-          lineColor.g,
-          lineColor.b,
+          startColor.r,
+          startColor.g,
+          startColor.b,
+          endColor.r,
+          endColor.g,
+          endColor.b,
         );
+      });
+    });
 
-        // Mark both points as connected
-        connectedPoints[i] = true;
-        connectedPoints[nearestIdx] = true;
-
-        // Store this connection
-        pointConnections[i]!.push(nearestIdx);
-        pointConnections[nearestIdx]!.push(i);
-      }
-    }
-
-    // Second pass: create some secondary connections using proximity rules
-    // Add occasional longer-distance connections for network complexity
-    const maxConnections = 3; // Limit connections per node
-    const connectionDistance = 15; // Slightly longer distance for secondary connections
-
-    for (let i = 0; i < count; i++) {
-      // Skip if this point already has enough connections
-      if (pointConnections[i]!.length >= maxConnections) continue;
-
-      // Sort other points by distance for more structured connections
-      const otherPoints = [];
-      for (let j = 0; j < count; j++) {
-        if (i === j || pointConnections[i]!.includes(j)) continue;
-
-        const distance = positionVectors[i]!.distanceTo(positionVectors[j]!);
-        if (distance < connectionDistance) {
-          otherPoints.push({ index: j, distance: distance });
-        }
-      }
-
-      // Sort by distance
-      otherPoints.sort((a, b) => a.distance - b.distance);
-
-      // Add connections up to the max (or as many as available)
-      const connectionsToAdd = Math.min(
-        maxConnections - pointConnections[i]!.length,
-        otherPoints.length,
-      );
-
-      for (let k = 0; k < connectionsToAdd; k++) {
-        const targetIdx = otherPoints[k]!.index;
-
-        // Skip if the target already has max connections
-        if (pointConnections[targetIdx]!.length >= maxConnections) continue;
-
-        const p1 = positionVectors[i];
-        const p2 = positionVectors[targetIdx];
-
-        // Add secondary connection
-        linePositions.push(p1!.x, p1!.y, p1!.z, p2!.x, p2!.y, p2!.z);
-
-        // Secondary connections have a more subtle color
-        const lineColor = new THREE.Color("#60A5FA").lerp(
-          new THREE.Color("#A78BFA"),
-          seededRandom(), // Instead of Math.random()
-        );
-
-        lineColors.push(
-          lineColor.r,
-          lineColor.g,
-          lineColor.b,
-          lineColor.r,
-          lineColor.g,
-          lineColor.b,
-        );
-
-        // Record this connection
-        pointConnections[i]!.push(targetIdx);
-        pointConnections[targetIdx]!.push(i);
-      }
-    }
-
+    // Create lines geometry
+    const linesGeometry = new THREE.BufferGeometry();
     linesGeometry.setAttribute(
       "position",
       new THREE.Float32BufferAttribute(linePositions, 3),
@@ -555,240 +341,310 @@ export const HeroBackground = () => {
       new THREE.Float32BufferAttribute(lineColors, 3),
     );
 
-    // Create line material with improved visuals
-    const linesMaterial = new THREE.LineBasicMaterial({
-      vertexColors: true,
-      transparent: true,
-      opacity: 0.5,
-      blending: THREE.AdditiveBlending,
-      linewidth: 1, // Note: linewidth is generally fixed at 1 due to WebGL limitations
-    });
-
+    // Create lines mesh and add to group
     const lines = new THREE.LineSegments(linesGeometry, linesMaterial);
-    scene.add(lines);
-
-    // Add animated particles flowing along connections for a more dynamic effect
-    const particleCount = linePositions.length / 6; // One particle per line segment
-    const particleGeometry = new THREE.BufferGeometry();
-    const particlePositions = new Float32Array(particleCount * 3);
-    const particleSizes = new Float32Array(particleCount);
-    const particleColors = new Float32Array(particleCount * 3);
-
-    // Initialize particles at random positions along each line
-    for (let i = 0; i < particleCount; i++) {
-      const lineStartIdx = i * 6; // Each line has 6 values (2 points × 3 coordinates)
-      if (linePositions[lineStartIdx] === undefined) continue;
-
-      const startX = linePositions[lineStartIdx];
-      const startY = linePositions[lineStartIdx + 1];
-      const startZ = linePositions[lineStartIdx + 2];
-      const endX = linePositions[lineStartIdx + 3];
-      const endY = linePositions[lineStartIdx + 4];
-      const endZ = linePositions[lineStartIdx + 5];
-
-      // Random position along the line
-      const progress = seededRandom();
-      particlePositions[i * 3] = startX + (endX! - startX) * progress;
-      particlePositions[i * 3 + 1] = startY! + (endY! - startY!) * progress;
-      particlePositions[i * 3 + 2] = startZ! + (endZ! - startZ!) * progress;
-
-      // Random size between 0.4 and 0.8
-      particleSizes[i] = 0.4 + seededRandom() * 0.4;
-
-      // Use same color as the line for consistency
-      const colorIdx = lineStartIdx * (3 / 6); // Convert from line index to color index
-      if (lineColors[colorIdx] !== undefined) {
-        particleColors[i * 3]! = lineColors[colorIdx];
-        particleColors[i * 3 + 1] = lineColors[colorIdx + 1]!;
-        particleColors[i * 3 + 2] = lineColors[colorIdx + 2]!;
-      } else {
-        // Fallback to default color if line color isn't available
-        const defaultColor = new THREE.Color(0x60a5fa);
-        particleColors[i * 3] = defaultColor.r;
-        particleColors[i * 3 + 1] = defaultColor.g;
-        particleColors[i * 3 + 2] = defaultColor.b;
-      }
-    }
-
-    particleGeometry.setAttribute(
-      "position",
-      new THREE.BufferAttribute(particlePositions, 3),
-    );
-    particleGeometry.setAttribute(
-      "size",
-      new THREE.BufferAttribute(particleSizes, 1),
-    );
-    particleGeometry.setAttribute(
-      "color",
-      new THREE.BufferAttribute(particleColors, 3),
-    );
-
-    // Create particle material
-    const particleMaterial = new THREE.ShaderMaterial({
-      uniforms: {},
-      vertexShader: `
-    attribute float size;
-    attribute vec3 color;
-    varying vec3 vColor;
-    void main() {
-      vColor = color;
-      vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
-      gl_PointSize = size * (300.0 / -mvPosition.z);
-      gl_Position = projectionMatrix * mvPosition;
-    }
-  `,
-      fragmentShader: `
-    varying vec3 vColor;
-    void main() {
-      float r = 0.0;
-      vec2 cxy = 2.0 * gl_PointCoord - 1.0;
-      r = dot(cxy, cxy);
-      if (r > 1.0) {
-        discard;
-      }
-      gl_FragColor = vec4(vColor, 1.0 - r);
-    }
-  `,
-      transparent: true,
-      depthWrite: false,
-      blending: THREE.AdditiveBlending,
-    });
-
-    const particles = new THREE.Points(particleGeometry, particleMaterial);
-    scene.add(particles);
-
-    // Group for unified rotation
-    const group = new THREE.Group();
     group.add(lines);
-    group.add(particles); // Add particles to rotation group
-    scene.add(group);
 
-    // Animation
+    // Animation flow particles - only for medium/high performance
+    if (level !== "low") {
+      const particleCount = connections.size;
+      const particleGeometry = new THREE.BufferGeometry();
+      const particlePositions = new Float32Array(particleCount * 3);
+      const particleSizes = new Float32Array(particleCount);
+      const particleColors = new Float32Array(particleCount * 3);
+
+      // Initialize particles at random positions along each line
+      let particleIndex = 0;
+
+      // Extract line segments for particle paths
+      const linePaths: Array<{
+        start: THREE.Vector3;
+        end: THREE.Vector3;
+        color: THREE.Color;
+      }> = [];
+
+      for (let i = 0; i < linePositions.length; i += 6) {
+        const startPos = new THREE.Vector3(
+          linePositions[i]!,
+          linePositions[i + 1]!,
+          linePositions[i + 2]!,
+        );
+
+        const endPos = new THREE.Vector3(
+          linePositions[i + 3]!,
+          linePositions[i + 4]!,
+          linePositions[i + 5]!,
+        );
+
+        const startColor = new THREE.Color(
+          lineColors[i]!,
+          lineColors[i + 1]!,
+          lineColors[i + 2]!,
+        );
+
+        linePaths.push({
+          start: startPos,
+          end: endPos,
+          color: startColor,
+        });
+      }
+
+      // Create particles along paths
+      linePaths.forEach((path, i) => {
+        if (particleIndex >= particleCount) return;
+
+        // Random progress along the line
+        const progress = randomizer();
+
+        // Interpolate position
+        particlePositions[particleIndex * 3] =
+          path.start.x + (path.end.x - path.start.x) * progress;
+        particlePositions[particleIndex * 3 + 1] =
+          path.start.y + (path.end.y - path.start.y) * progress;
+        particlePositions[particleIndex * 3 + 2] =
+          path.start.z + (path.end.z - path.start.z) * progress;
+
+        // Set size based on performance level
+        particleSizes[particleIndex] = level === "high" ? 2.0 : 1.5;
+
+        // Set color
+        particleColors[particleIndex * 3] = path.color.r;
+        particleColors[particleIndex * 3 + 1] = path.color.g;
+        particleColors[particleIndex * 3 + 2] = path.color.b;
+
+        // Store path index for animation
+        particleIndex++;
+      });
+
+      // Set attributes
+      particleGeometry.setAttribute(
+        "position",
+        new THREE.BufferAttribute(particlePositions, 3),
+      );
+      particleGeometry.setAttribute(
+        "size",
+        new THREE.BufferAttribute(particleSizes, 1),
+      );
+      particleGeometry.setAttribute(
+        "color",
+        new THREE.BufferAttribute(particleColors, 3),
+      );
+
+      // Create particle shader material
+      const particleMaterial = new THREE.ShaderMaterial({
+        uniforms: {
+          time: { value: 0 },
+        },
+        vertexShader: `
+          attribute float size;
+          attribute vec3 color;
+          varying vec3 vColor;
+          
+          void main() {
+            vColor = color;
+            vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
+            gl_PointSize = size * (300.0 / -mvPosition.z);
+            gl_Position = projectionMatrix * mvPosition;
+          }
+        `,
+        fragmentShader: `
+          varying vec3 vColor;
+          
+          void main() {
+            float r = 0.0;
+            vec2 cxy = 2.0 * gl_PointCoord - 1.0;
+            r = dot(cxy, cxy);
+            if (r > 1.0) {
+              discard;
+            }
+            gl_FragColor = vec4(vColor, 1.0 - r);
+          }
+        `,
+        transparent: true,
+        depthWrite: false,
+        blending: THREE.AdditiveBlending,
+      });
+
+      // Create particles and add to group
+      const particles = new THREE.Points(particleGeometry, particleMaterial);
+      particles.userData = {
+        linePaths,
+        particlePositions,
+      };
+      group.add(particles);
+    }
+
+    // Animation loop with optimizations
     const clock = new THREE.Clock();
 
     const animate = () => {
       const elapsedTime = clock.getElapsedTime();
 
-      // Rotate the entire group with smooth damping
-      group.rotation.y = elapsedTime * 0.05;
-      group.rotation.x = Math.sin(elapsedTime * 0.1) * 0.05; // Gentle bobbing
-      const updateFrequency = performanceLevel === "low" ? 2 : 1;
+      // Limit updates for lower performance devices
+      const updateFrequency = level === "low" ? 3 : level === "medium" ? 2 : 1;
+      const shouldUpdate = Math.floor(elapsedTime * 60) % updateFrequency === 0;
 
-      if (Math.floor(elapsedTime * 60) % updateFrequency === 0) {
-        // Add instances to group if available
-        if (
-          instancedMeshes.length > 0 &&
-          !group.children.includes(instancedMeshes[0]!)
-        ) {
-          instancedMeshes.forEach((mesh) => group.add(mesh));
-        }
+      // Always rotate for smooth motion
+      if (group) {
+        // Rotate more slowly for better performance
+        const speed = level === "low" ? 0.03 : level === "medium" ? 0.05 : 0.07;
+        group.rotation.y = elapsedTime * speed;
 
-        // Pulsating emissive effect for accent materials
-        instancedMeshes.forEach((mesh, meshIdx) => {
-          if (meshIdx % 3 === 2) {
-            // Accent pieces
-            const material = mesh.material as THREE.MeshPhysicalMaterial;
-            if (material.emissiveIntensity) {
-              material.emissiveIntensity =
-                0.8 + Math.sin(elapsedTime * 2) * 0.4;
-            }
-          }
+        // Subtle tilting effect
+        group.rotation.x = Math.sin(elapsedTime * 0.1) * 0.05;
+      }
+
+      // Update nodes and particles only when needed
+      if (shouldUpdate) {
+        // Animate nodes
+        nodes.forEach((node) => {
+          const userData = node.userData;
+
+          // Pulsating effect
+          const pulseFactor = 0.05;
+          const scale =
+            1 +
+            Math.sin(
+              elapsedTime * userData.pulsateSpeed + userData.pulsatePhase,
+            ) *
+              pulseFactor;
+          node.scale.set(scale, scale, scale);
+
+          // Individual rotation
+          node.rotation.x = elapsedTime * userData.rotateSpeed;
+          node.rotation.y = elapsedTime * userData.rotateSpeed * 0.7;
         });
 
-        // Animate particles flowing along connections
-        const positions = particleGeometry.attributes.position!.array;
+        // Animate particles - only for medium/high
+        if (level !== "low") {
+          const particles = group.children.find(
+            (child) => child instanceof THREE.Points,
+          ) as THREE.Points;
 
-        for (let i = 0; i < particleCount; i++) {
-          const lineStartIdx = i * 6;
-          const startX = linePositions[lineStartIdx];
-          const startY = linePositions[lineStartIdx + 1];
-          const startZ = linePositions[lineStartIdx + 2];
-          const endX = linePositions[lineStartIdx + 3];
-          const endY = linePositions[lineStartIdx + 4];
-          const endZ = linePositions[lineStartIdx + 5];
+          if (particles) {
+            const { linePaths, particlePositions } = particles.userData;
+            const positions = particles.geometry.attributes.position!
+              .array as Float32Array;
 
-          // Calculate motion along the line with a looping pattern
-          const speed = 0.2; // Adjust speed as needed
-          const progress = (elapsedTime * speed + i * 0.1) % 1.0;
+            // Animate positions along paths
+            for (let i = 0; i < positions.length / 3; i++) {
+              const pathIndex = i % linePaths.length;
+              const path = linePaths[pathIndex]!;
 
-          positions[i * 3] = startX! + (endX! - startX!) * progress;
-          positions[i * 3 + 1] = startY! + (endY! - startY!) * progress;
-          positions[i * 3 + 2] = startZ! + (endZ! - startZ!) * progress;
+              // Calculate progress based on time
+              const speed = 0.2;
+              const loopDuration = path.start.distanceTo(path.end) * 5; // Adjust speed based on distance
+              const cycleTime = (elapsedTime * speed) % loopDuration;
+              const progress = cycleTime / loopDuration;
+
+              // Update position
+              positions[i * 3] =
+                path.start.x + (path.end.x - path.start.x) * progress;
+              positions[i * 3 + 1] =
+                path.start.y + (path.end.y - path.start.y) * progress;
+              positions[i * 3 + 2] =
+                path.start.z + (path.end.z - path.start.z) * progress;
+            }
+
+            // Mark attribute for update
+            particles.geometry.attributes.position!.needsUpdate = true;
+
+            // Update shader time uniform if available
+            if ((particles.material as THREE.ShaderMaterial).uniforms?.time) {
+              (
+                particles.material as THREE.ShaderMaterial
+              ).uniforms.time!.value = elapsedTime;
+            }
+          }
         }
-
-        particleGeometry.attributes.position!.needsUpdate = true;
       }
 
-      // Use composer for post-processing
-      composer.render();
-      requestAnimationFrame(animate);
+      // Render with composer if available, otherwise use renderer
+      if (composer) {
+        composer.render();
+      } else if (renderer) {
+        renderer.render(scene, camera);
+      }
+
+      // Continue animation loop
+      animationRef.current = requestAnimationFrame(animate);
     };
 
+    // Start animation
     animate();
 
-    // Handle resize
+    // Handle window resize
     const handleResize = () => {
-      if (!canvasRef.current || !renderer || !camera) return;
-
-      // Set proper canvas dimensions matching the viewport
-      renderer.setSize(window.innerWidth, window.innerHeight);
-
-      // Maintain correct pixel ratio for high-DPI displays
-      const pixelRatio = Math.min(window.devicePixelRatio, 2);
-      renderer.setPixelRatio(pixelRatio);
+      if (!renderer || !camera) return;
 
       // Update camera aspect ratio
-      if (camera instanceof THREE.PerspectiveCamera) {
-        camera.aspect = window.innerWidth / window.innerHeight;
-        camera.updateProjectionMatrix();
-      }
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
 
-      // Force a render to update view
+      // Update renderer size
+      renderer.setSize(window.innerWidth, window.innerHeight);
+
+      // Update composer size if available
       if (composer) {
         composer.setSize(window.innerWidth, window.innerHeight);
-        composer.render();
-      }
-    };
-    const handleScroll = () => {
-      // Keep the canvas fixed in the viewport
-      if (canvasRef.current) {
-        canvasRef.current.style.position = "fixed";
-        canvasRef.current.style.top = "0";
-        canvasRef.current.style.left = "0";
-        canvasRef.current.style.width = "100vw";
-        canvasRef.current.style.height = "100vh";
       }
     };
 
+    // Setup event listeners
     window.addEventListener("resize", handleResize);
-    window.addEventListener("scroll", handleScroll);
 
     // Initial setup
     handleResize();
-    handleScroll();
 
+    // Cleanup function with proper resource disposal
     return () => {
       window.removeEventListener("resize", handleResize);
-      window.removeEventListener("scroll", handleScroll);
 
-      renderer.dispose();
-      composer.dispose();
-      // Dispose geometries and materials
-      scene.traverse((object) => {
-        if (object instanceof THREE.Mesh) {
-          object.geometry.dispose();
-          if (object.material instanceof THREE.Material) {
-            object.material.dispose();
-          } else if (Array.isArray(object.material)) {
-            object.material.forEach((material) => material.dispose());
+      if (animationRef.current) {
+        cancelAnimationFrame(animationRef.current);
+      }
+
+      // Dispose of all Three.js resources
+      if (scene) {
+        scene.traverse((object) => {
+          // Dispose geometries
+          if (
+            object instanceof THREE.Mesh ||
+            object instanceof THREE.Line ||
+            object instanceof THREE.Points
+          ) {
+            if (object.geometry) {
+              object.geometry.dispose();
+            }
+
+            // Dispose materials
+            if (Array.isArray(object.material)) {
+              object.material.forEach((material) => material.dispose());
+            } else if (object.material) {
+              object.material.dispose();
+            }
           }
-        }
-      });
+        });
+      }
+
+      // Dispose of effects composer
+      if (composer) {
+        composer.passes.forEach((pass) => {
+          // @ts-ignore - dispose exists on passes
+          if (pass.dispose) pass.dispose();
+        });
+      }
+
+      // Dispose of renderer
+      if (renderer) {
+        renderer.dispose();
+        renderer.forceContextLoss();
+      }
     };
-  }, []);
+  }, [level, pixelRatio, quality3D, particleCounts]);
 
   return (
-    <div className="fixed inset-0 z-[-1000] h-full w-full" ref={containerRef}>
+    <div ref={containerRef} className="fixed inset-0 z-[-1000] h-full w-full">
       <canvas
         ref={canvasRef}
         className="fixed inset-0 h-full w-full"
@@ -804,3 +660,5 @@ export const HeroBackground = () => {
     </div>
   );
 };
+
+export default HeroBackground;

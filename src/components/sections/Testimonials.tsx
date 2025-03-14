@@ -1,66 +1,87 @@
+// src/components/sections/Testimonials.tsx
 "use client";
-import { Canvas } from "@react-three/fiber";
-import { motion } from "framer-motion";
-import * as THREE from "three";
-import { useRef, useState, useEffect, Suspense } from "react";
-import { useLanguage } from "../../i18n/context";
+
+import { useRef, useState, useEffect, useCallback } from "react";
+import { motion, AnimatePresence, useAnimation } from "framer-motion";
+import { useLanguage } from "~/i18n/context";
+import {
+  Parallax,
+  ScrollReveal,
+  useSmoothScroll,
+} from "~/provider/SmoothScrollProvider";
 import gsap from "gsap";
+import { ScrollTrigger } from "gsap/dist/ScrollTrigger";
+import { useIsomorphicLayoutEffect } from "~/hooks/useIsomorphicLayout";
+import { cn } from "~/lib/utils";
+import { Canvas, useFrame, useThree } from "@react-three/fiber";
+import * as THREE from "three";
 
-// Separate component for the 3D element
-const TorusBackground = () => {
-  const torusRef = useRef<THREE.Mesh>(null);
+// Testimonial data type
+interface Testimonial {
+  quote: string;
+  author: string;
+  position: string;
+  image: string;
+}
 
-  // Use a one-time setup effect
-  useEffect(() => {
-    if (!torusRef.current) return;
+// 3D Background Animation Component
+const AnimatedTorus: React.FC = () => {
+  const meshRef = useRef<THREE.Mesh>(null);
+  const { size, viewport } = useThree();
+  const aspect = size.width / viewport.width;
 
-    // Set initial rotation once only
-    torusRef.current.rotation.x = 0.5;
-    torusRef.current.rotation.y = 0.5;
+  // Use a more performant animation approach with frame-rate independent animation
+  useFrame((state, delta) => {
+    if (!meshRef.current) return;
 
-    // Manual animation instead of using OrbitControls
-    let animationId: number;
-    const animate = () => {
-      if (torusRef.current) {
-        torusRef.current.rotation.y += 0.003;
-      }
-      animationId = requestAnimationFrame(animate);
-    };
+    // Smooth rotation based on delta time
+    meshRef.current.rotation.x += delta * 0.15;
+    meshRef.current.rotation.y += delta * 0.2;
 
-    animate();
-
-    // Clean up animation frame on unmount
-    return () => {
-      cancelAnimationFrame(animationId);
-    };
-  }, []);
+    // Subtle pulsing effect
+    const t = state.clock.getElapsedTime();
+    meshRef.current.scale.x = 1 + Math.sin(t * 0.5) * 0.05;
+    meshRef.current.scale.y = 1 + Math.sin(t * 0.5) * 0.05;
+    meshRef.current.scale.z = 1 + Math.sin(t * 0.5) * 0.05;
+  });
 
   return (
     <>
-      <ambientLight intensity={0.5} />
-      <pointLight position={[5, 5, 5]} intensity={1} />
-      <mesh ref={torusRef}>
-        <torusGeometry args={[2.5, 0.8, 32, 100]} />
+      <ambientLight intensity={0.3} />
+      <pointLight position={[10, 10, 10]} intensity={1} />
+      <pointLight position={[-10, -10, -5]} intensity={0.5} color="#7C3AED" />
+
+      <mesh ref={meshRef} rotation={[Math.PI / 4, 0, 0]}>
+        <torusGeometry args={[3, 1, 32, 100]} />
         <meshStandardMaterial
           color="#8B5CF6"
           wireframe
           emissive="#4C1D95"
-          emissiveIntensity={0.2}
+          emissiveIntensity={0.3}
+          transparent
+          opacity={0.8}
         />
       </mesh>
     </>
   );
 };
 
-export const Testimonials = () => {
+// Main Testimonials Component
+export const Testimonials: React.FC = () => {
   const { t } = useLanguage();
-  const sectionRef = useRef(null);
-  const containerRef = useRef<HTMLDivElement | null>(null);
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const isAnimatingRef = useRef(false);
-  const slidesRef = useRef([]);
+  const sectionRef = useRef<HTMLElement>(null);
+  const sliderRef = useRef<HTMLDivElement>(null);
+  const { lenis, scroll } = useSmoothScroll();
 
-  const testimonials = [
+  const [activeIndex, setActiveIndex] = useState<number>(0);
+  const [isAnimating, setIsAnimating] = useState<boolean>(false);
+  const [direction, setDirection] = useState<number>(1); // 1 for right, -1 for left
+
+  // Animation controls for slide transitions
+  const slideControls = useAnimation();
+
+  // Testimonials data
+  const testimonials: Testimonial[] = [
     {
       quote:
         "TechConsult.BG transformed our business with their strategic vision and technical expertise. They didn't just implement technology - they revolutionized our entire approach.",
@@ -84,42 +105,110 @@ export const Testimonials = () => {
     },
   ];
 
-  // Initialize the slider once on mount
+  // Initialize GSAP ScrollTrigger
+  useIsomorphicLayoutEffect(() => {
+    if (!sectionRef.current || !lenis) return;
+
+    gsap.registerPlugin(ScrollTrigger);
+
+    const ctx = gsap.context(() => {
+      // Create timeline for the section entrance animation
+      const tl = gsap.timeline({
+        scrollTrigger: {
+          trigger: sectionRef.current,
+          start: "top 80%",
+          end: "bottom 20%",
+          toggleActions: "play none none reverse",
+        },
+      });
+
+      tl.fromTo(
+        ".testimonial-header",
+        { opacity: 0, y: 50 },
+        { opacity: 1, y: 0, duration: 0.6 },
+      ).fromTo(
+        ".testimonial-container",
+        { opacity: 0, y: 30 },
+        { opacity: 1, y: 0, duration: 0.6 },
+        "-=0.3",
+      );
+    }, sectionRef);
+
+    return () => ctx.revert();
+  }, [lenis]);
+
+  // Handle automatic slideshow
   useEffect(() => {
-    if (!containerRef.current) return;
+    const interval = setInterval(() => {
+      if (!isAnimating) {
+        goToNextSlide();
+      }
+    }, 6000);
 
-    // Instead of using gsap.utils.toArray which can cause issues, use refs
-    slidesRef.current = Array.from(
-      containerRef.current.querySelectorAll(".testimonial-slide"),
-    );
+    return () => clearInterval(interval);
+  }, [activeIndex, isAnimating]);
 
-    // Set initial positions
-    gsap.set(slidesRef.current, {
-      xPercent: (i) => i * 100, // Position slides side by side
-    });
+  // Navigation Functions
+  const goToSlide = useCallback(
+    (index: number) => {
+      if (isAnimating || index === activeIndex) return;
+      if (index < 0 || index >= testimonials.length) return;
 
-    // No need for a cleanup as this is just initial positioning
-  }, []);
+      const newDirection = index > activeIndex ? 1 : -1;
+      setDirection(newDirection);
+      setIsAnimating(true);
 
-  const goToSlide = (index: number): void => {
-    if (isAnimatingRef.current || index === currentIndex) return;
-    if (index < 0 || index >= testimonials.length) return;
+      // Animate slide transition
+      slideControls
+        .start({
+          x: newDirection * -100 + "%",
+          transition: { duration: 0.6, ease: [0.32, 0.72, 0, 1] },
+        })
+        .then(() => {
+          setActiveIndex(index);
+          setIsAnimating(false);
+          slideControls.set({ x: 0 });
+        });
+    },
+    [activeIndex, isAnimating, slideControls, testimonials.length],
+  );
 
-    isAnimatingRef.current = true;
+  const goToNextSlide = useCallback(() => {
+    const nextIndex = (activeIndex + 1) % testimonials.length;
+    goToSlide(nextIndex);
+  }, [activeIndex, goToSlide, testimonials.length]);
 
-    // Animate to the target slide
-    gsap.to(slidesRef.current, {
-      xPercent: (i: number) => 100 * (i - index),
-      duration: 0.8,
-      ease: "power2.out",
-      onComplete: () => {
-        isAnimatingRef.current = false;
-        setCurrentIndex(index);
+  const goToPrevSlide = useCallback(() => {
+    const prevIndex =
+      (activeIndex - 1 + testimonials.length) % testimonials.length;
+    goToSlide(prevIndex);
+  }, [activeIndex, goToSlide, testimonials.length]);
+
+  // Quote animations
+  const quoteVariants = {
+    initial: (dir: number) => ({
+      x: dir * 30,
+      opacity: 0,
+    }),
+    animate: {
+      x: 0,
+      opacity: 1,
+      transition: {
+        x: { type: "spring", stiffness: 300, damping: 30 },
+        opacity: { duration: 0.4 },
       },
-    });
+    },
+    exit: (dir: number) => ({
+      x: dir * -30,
+      opacity: 0,
+      transition: {
+        x: { type: "spring", stiffness: 300, damping: 30 },
+        opacity: { duration: 0.4 },
+      },
+    }),
   };
 
-  // Quote mark animation
+  // Animate quote marks
   const quoteMarkVariants = {
     animate: {
       opacity: [0.3, 0.6, 0.3],
@@ -133,130 +222,191 @@ export const Testimonials = () => {
   };
 
   return (
-    <section ref={sectionRef} className="bg-transparent py-24">
+    <section ref={sectionRef} className="relative overflow-hidden py-24">
       <div className="container mx-auto px-4">
-        <div className="mb-16 text-center">
-          <span className="font-mono uppercase tracking-wider text-accent-500">
-            Client Feedback
-          </span>
-          <h2 className="mb-6 text-4xl font-bold md:text-5xl">
-            What Our Clients Say
-          </h2>
-        </div>
+        <ScrollReveal direction="up" threshold={0.1} once>
+          <div className="testimonial-header mb-16 text-center">
+            <span className="font-mono uppercase tracking-wider text-accent-500">
+              Client Feedback
+            </span>
+            <h2 className="mb-6 text-4xl font-bold md:text-5xl">
+              What Our Clients Say
+            </h2>
+          </div>
+        </ScrollReveal>
 
-        <div className="relative mx-auto max-w-4xl overflow-hidden rounded-xl">
-          {/* Animated quote mark */}
-          <motion.div
+        <div
+          ref={sliderRef}
+          className="testimonial-container relative mx-auto max-w-4xl"
+        >
+          {/* Background canvas for 3D effect - Reduced render priority for better performance */}
+          <div className="pointer-events-none absolute inset-0 -z-10 opacity-40">
+            <Canvas
+              dpr={[1, 1.5]} // Lower resolution for background effects
+              camera={{ position: [0, 0, 8], fov: 50 }}
+              frameloop="demand" // Only render when needed
+            >
+              <AnimatedTorus />
+            </Canvas>
+          </div>
+
+          {/* Dynamic quote marks */}
+          <Parallax
+            speed={0.15}
+            direction="up"
             className="absolute -top-10 left-4 text-8xl font-bold text-accent-500/30"
-            variants={quoteMarkVariants}
-            animate="animate"
           >
-            "
-          </motion.div>
-
-          {/* Testimonial container */}
-          <div
-            ref={containerRef}
-            className="relative h-full w-full overflow-hidden"
+            <motion.div variants={quoteMarkVariants} animate="animate">
+              "
+            </motion.div>
+          </Parallax>
+          <Parallax
+            speed={0.15}
+            direction="down"
+            className="absolute -bottom-10 right-4 text-8xl font-bold text-accent-500/30"
           >
-            <div className="flex">
-              {testimonials.map((testimonial, index) => (
-                <div
-                  key={index}
-                  className="testimonial-slide relative min-w-full shrink-0 p-8"
-                >
-                  <div className="relative rounded-xl bg-neutral-900/50 p-8 backdrop-blur-lg">
-                    <div className="relative mb-8 overflow-hidden rounded-lg p-4">
-                      <div className="absolute inset-0 -z-10 opacity-50">
-                        <Canvas
-                          camera={{ position: [0, 0, 5], fov: 50 }}
-                          gl={{ antialias: true }}
-                        >
-                          <Suspense fallback={null}>
-                            <TorusBackground />
-                          </Suspense>
-                        </Canvas>
-                      </div>
+            <motion.div variants={quoteMarkVariants} animate="animate">
+              "
+            </motion.div>
+          </Parallax>
 
-                      <p className="relative z-10 text-xl italic text-white md:text-2xl">
-                        {testimonial.quote}
-                      </p>
-                    </div>
+          {/* Testimonial slider */}
+          <div className="relative overflow-hidden rounded-xl bg-neutral-900/60 p-8 shadow-lg backdrop-blur-lg">
+            <AnimatePresence custom={direction} initial={false} mode="wait">
+              <motion.div
+                key={activeIndex}
+                custom={direction}
+                variants={quoteVariants}
+                initial="initial"
+                animate="animate"
+                exit="exit"
+                className="relative"
+              >
+                <p className="relative z-10 mb-8 text-xl italic text-white md:text-2xl">
+                  {testimonials[activeIndex]?.quote || ""}
+                </p>
 
-                    <div className="flex items-center">
-                      <div className="h-14 w-14 overflow-hidden rounded-full border-2 border-accent-500">
-                        <div
-                          className="h-full w-full bg-cover bg-center"
-                          style={{
-                            backgroundImage: `url(${testimonial.image})`,
-                          }}
-                        />
-                      </div>
-                      <div className="ml-4">
-                        <p className="font-bold text-white">
-                          {testimonial.author}
-                        </p>
-                        <p className="text-sm text-neutral-400">
-                          {testimonial.position}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
+                <div className="flex items-center">
+                  <motion.div
+                    className="h-14 w-14 overflow-hidden rounded-full border-2 border-accent-500"
+                    initial={{ scale: 0.8, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    transition={{ delay: 0.2 }}
+                  >
+                    <div
+                      className="h-full w-full bg-cover bg-center"
+                      style={{
+                        backgroundImage: `url(${testimonials[activeIndex]?.image ?? ""})`,
+                      }}
+                    />
+                  </motion.div>
+                  <motion.div
+                    className="ml-4"
+                    initial={{ x: 10, opacity: 0 }}
+                    animate={{ x: 0, opacity: 1 }}
+                    transition={{ delay: 0.3 }}
+                  >
+                    <p className="font-bold text-white">
+                      {testimonials[activeIndex]?.author || ""}
+                    </p>
+                    <p className="text-sm text-neutral-400">
+                      {testimonials[activeIndex]?.position || ""}
+                    </p>
+                  </motion.div>
                 </div>
-              ))}
+              </motion.div>
+            </AnimatePresence>
+
+            {/* Progress indicator */}
+            <div className="absolute bottom-0 left-0 h-1 w-full bg-neutral-800">
+              <motion.div
+                className="h-full bg-accent-500"
+                initial={{ width: 0 }}
+                animate={{ width: "100%" }}
+                transition={{
+                  duration: 6,
+                  ease: "linear",
+                  repeat: Infinity,
+                  repeatType: "loop",
+                }}
+                key={activeIndex} // Reset animation when slide changes
+              />
             </div>
           </div>
 
-          {/* Navigation arrows */}
-          <div className="absolute left-0 right-0 top-1/2 flex -translate-y-1/2 justify-between px-4">
-            <button
-              className={`rounded-full bg-accent-500 p-2 text-white transition-opacity duration-300 ${
-                currentIndex === 0
+          {/* Navigation arrows with responsive positioning */}
+          <div className="absolute left-0 right-0 top-1/2 flex -translate-y-1/2 justify-between px-4 md:-mx-12 md:px-0">
+            <motion.button
+              className={cn(
+                "flex h-10 w-10 items-center justify-center rounded-full bg-accent-500 text-white transition-opacity duration-300 md:h-12 md:w-12",
+                activeIndex === 0
                   ? "opacity-50"
-                  : "opacity-100 hover:bg-accent-600"
-              }`}
-              onClick={() => goToSlide(currentIndex - 1)}
-              disabled={currentIndex === 0}
+                  : "opacity-100 hover:bg-accent-600",
+              )}
+              onClick={goToPrevSlide}
+              disabled={isAnimating || activeIndex === 0}
               aria-label="Previous testimonial"
+              whileTap={{ scale: 0.9 }}
+              whileHover={
+                activeIndex !== 0
+                  ? {
+                      scale: 1.1,
+                      boxShadow: "0 0 15px rgba(124, 58, 237, 0.5)",
+                    }
+                  : {}
+              }
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
                 fill="none"
+                viewBox="0 0 24 24"
                 stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
+                className="h-5 w-5 md:h-6 md:w-6"
               >
-                <path d="M15 18l-6-6 6-6" />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M15 19l-7-7 7-7"
+                />
               </svg>
-            </button>
-            <button
-              className={`rounded-full bg-accent-500 p-2 text-white transition-opacity duration-300 ${
-                currentIndex === testimonials.length - 1
+            </motion.button>
+
+            <motion.button
+              className={cn(
+                "flex h-10 w-10 items-center justify-center rounded-full bg-accent-500 text-white transition-opacity duration-300 md:h-12 md:w-12",
+                activeIndex === testimonials.length - 1
                   ? "opacity-50"
-                  : "opacity-100 hover:bg-accent-600"
-              }`}
-              onClick={() => goToSlide(currentIndex + 1)}
-              disabled={currentIndex === testimonials.length - 1}
+                  : "opacity-100 hover:bg-accent-600",
+              )}
+              onClick={goToNextSlide}
+              disabled={isAnimating || activeIndex === testimonials.length - 1}
               aria-label="Next testimonial"
+              whileTap={{ scale: 0.9 }}
+              whileHover={
+                activeIndex !== testimonials.length - 1
+                  ? {
+                      scale: 1.1,
+                      boxShadow: "0 0 15px rgba(124, 58, 237, 0.5)",
+                    }
+                  : {}
+              }
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
                 fill="none"
+                viewBox="0 0 24 24"
                 stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
+                className="h-5 w-5 md:h-6 md:w-6"
               >
-                <path d="M9 18l6-6-6-6" />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M9 5l7 7-7 7"
+                />
               </svg>
-            </button>
+            </motion.button>
           </div>
 
           {/* Navigation dots */}
@@ -264,12 +414,14 @@ export const Testimonials = () => {
             {testimonials.map((_, index) => (
               <button
                 key={index}
-                className={`mx-1 h-3 w-3 rounded-full transition-all duration-300 ${
-                  currentIndex === index
-                    ? "bg-accent-500"
-                    : "bg-neutral-600 hover:bg-neutral-400"
-                }`}
+                className={cn(
+                  "mx-1 h-3 w-3 rounded-full transition-all duration-300",
+                  activeIndex === index
+                    ? "w-6 bg-accent-500"
+                    : "bg-neutral-600 hover:bg-neutral-400",
+                )}
                 onClick={() => goToSlide(index)}
+                disabled={isAnimating}
                 aria-label={`Testimonial ${index + 1}`}
               />
             ))}

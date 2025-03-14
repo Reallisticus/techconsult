@@ -3,7 +3,7 @@
 
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { Magnetic } from "~/components/ui/magnetic";
+import { MagneticButton } from "~/components/ui/magnetic";
 import { useAnimationInView } from "~/hooks/useAnimation";
 import { useLanguage } from "~/i18n/context";
 
@@ -95,7 +95,7 @@ export const Footer = () => {
 
             <div className="flex space-x-4">
               {socialLinks.map((link) => (
-                <Magnetic key={link.name} strength={20}>
+                <MagneticButton key={link.name}>
                   <Link
                     href={link.href}
                     className="flex h-10 w-10 items-center justify-center rounded-full bg-neutral-900 transition-colors duration-300 hover:bg-primary-900"
@@ -103,7 +103,7 @@ export const Footer = () => {
                   >
                     <SocialIcon name={link.icon} />
                   </Link>
-                </Magnetic>
+                </MagneticButton>
               ))}
             </div>
           </motion.div>
