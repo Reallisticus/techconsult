@@ -43,6 +43,12 @@ canvas.three-background {
   pointer-events: none;
 }
 
+.headline {
+  background: linear-gradient(90deg, #ffffff, #ffffff);
+  background-clip: text;
+  -webkit-background-clip: text;
+}
+
 /* Custom cursor effect */
 .custom-cursor {
   width: 32px;

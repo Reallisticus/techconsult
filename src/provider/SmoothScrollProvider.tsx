@@ -81,6 +81,12 @@ export function SmoothScrollProvider({
     velocity: 0,
     direction: null as "up" | "down" | null,
   });
+  const prevScrollStateRef = useRef({
+    current: 0,
+    progress: 0,
+    velocity: 0,
+    direction: null as "up" | "down" | null,
+  });
 
   // Initialize Lenis with default options
   useIsomorphicLayoutEffect(() => {
@@ -158,27 +164,39 @@ export function SmoothScrollProvider({
     [lenis],
   );
 
-  // Start the animation loop when lenis is ready
+  // Set up scroll event handler and animation loop
   useEffect(() => {
     if (!lenis) return;
 
-    // Update scroll state on scroll
     const handleScroll = (e: {
       scroll: number;
       progress: number;
       velocity: number;
       direction: 1 | -1;
     }) => {
-      setScrollState({
-        current: e.scroll,
-        progress: e.progress,
-        velocity: e.velocity,
-        direction: e.direction === 1 ? "down" : "up",
-      });
+      // Only update state if values have actually changed
+      const prevState = prevScrollStateRef.current;
+      const newDirection: "up" | "down" = e.direction === 1 ? "down" : "up";
+
+      if (
+        prevState.current !== e.scroll ||
+        prevState.progress !== e.progress ||
+        prevState.velocity !== e.velocity ||
+        prevState.direction !== newDirection
+      ) {
+        const newState = {
+          current: e.scroll,
+          progress: e.progress,
+          velocity: e.velocity,
+          direction: newDirection,
+        };
+
+        prevScrollStateRef.current = newState;
+        setScrollState(newState);
+      }
     };
 
     lenis.on("scroll", handleScroll);
-
     reqIdRef.current = requestAnimationFrame(raf);
 
     return () => {
@@ -247,58 +265,71 @@ export function Parallax({
   const { scroll } = useSmoothScroll();
   const ref = useRef<HTMLDivElement>(null);
   const [transform, setTransform] = useState("");
+  const frameRef = useRef<number | null>(null);
+  const previousScrollRef = useRef(0);
 
   useEffect(() => {
     if (!ref.current) return;
 
     const handleScroll = () => {
-      const element = ref.current;
-      if (!element) return;
-
-      const rect = element.getBoundingClientRect();
-      const isInView = rect.top < window.innerHeight && rect.bottom > 0;
-
-      if (isInView) {
-        const scrollPos = scroll.current;
-        const offsetFromTop = rect.top + scrollPos;
-        const windowHeight = window.innerHeight;
-        const elementVisibility =
-          (scrollPos + windowHeight - offsetFromTop) /
-          (windowHeight + rect.height);
-
-        // Calculate movement based on element's visibility in the viewport
-        const movement = (elementVisibility - 0.5) * speed * 100;
-
-        let newTransform = "";
-        switch (direction) {
-          case "up":
-            newTransform = `translateY(${-movement}px)`;
-            break;
-          case "down":
-            newTransform = `translateY(${movement}px)`;
-            break;
-          case "left":
-            newTransform = `translateX(${-movement}px)`;
-            break;
-          case "right":
-            newTransform = `translateX(${movement}px)`;
-            break;
-        }
-
-        setTransform(newTransform);
+      // Cancel any pending animation frame
+      if (frameRef.current) {
+        cancelAnimationFrame(frameRef.current);
       }
+
+      // Schedule the transform calculation for the next frame
+      frameRef.current = requestAnimationFrame(() => {
+        const element = ref.current;
+        if (!element) return;
+
+        // Only update if scroll position has actually changed
+        if (previousScrollRef.current === scroll.current) return;
+        previousScrollRef.current = scroll.current;
+
+        const rect = element.getBoundingClientRect();
+        const isInView = rect.top < window.innerHeight && rect.bottom > 0;
+
+        if (isInView) {
+          const scrollPos = scroll.current;
+          const offsetFromTop = rect.top + scrollPos;
+          const windowHeight = window.innerHeight;
+          const elementVisibility =
+            (scrollPos + windowHeight - offsetFromTop) /
+            (windowHeight + rect.height);
+
+          // Calculate movement based on element's visibility in the viewport
+          const movement = (elementVisibility - 0.5) * speed * 100;
+
+          let newTransform = "";
+          switch (direction) {
+            case "up":
+              newTransform = `translateY(${-movement}px)`;
+              break;
+            case "down":
+              newTransform = `translateY(${movement}px)`;
+              break;
+            case "left":
+              newTransform = `translateX(${-movement}px)`;
+              break;
+            case "right":
+              newTransform = `translateX(${movement}px)`;
+              break;
+          }
+
+          setTransform(newTransform);
+        }
+      });
     };
 
     // Initial calculation
     handleScroll();
 
-    // Subscribe to scroll updates
-    window.addEventListener("scroll", handleScroll, { passive: true });
-
     return () => {
-      window.removeEventListener("scroll", handleScroll);
+      if (frameRef.current) {
+        cancelAnimationFrame(frameRef.current);
+      }
     };
-  }, [scroll, speed, direction]);
+  }, [scroll.current, speed, direction]);
 
   return (
     <div

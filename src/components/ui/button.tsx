@@ -2,7 +2,6 @@
 "use client";
 
 import * as React from "react";
-import { Slot } from "@radix-ui/react-slot";
 import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "~/lib/utils";
 import { Magnetic } from "./magnetic";
@@ -98,7 +97,7 @@ function ButtonInner<C extends React.ElementType = "button">(
       className={cn(
         buttonVariants({ variant, size, glow, magnetic, className }),
       )}
-      {...props}
+      {...(props as any)} // explicitly cast props to any to resolve type incompatibility
     >
       {children}
       {glow && (
