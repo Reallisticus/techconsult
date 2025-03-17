@@ -8,12 +8,22 @@ import { RenderPass } from "three/addons/postprocessing/RenderPass.js";
 import { UnrealBloomPass } from "three/addons/postprocessing/UnrealBloomPass.js";
 import { OutlinePass } from "three/addons/postprocessing/OutlinePass.js";
 import { RGBELoader } from "three/addons/loaders/RGBELoader.js";
+import { useResourceLoader } from "~/hooks/useResourceLoader";
+import { useLoadingManager } from "~/provider/LoadingProvider";
 
 export const HeroBackground = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const sceneRef = useRef<THREE.Scene | null>(null);
   const cameraRef = useRef<THREE.PerspectiveCamera | null>(null);
+
+  // Use resource loader to track loading
+  const { trackResource, updateResourceProgress, setResourceComplete } =
+    useResourceLoader();
+
+  // Register critical resources
+  const mainModelResource = trackResource("scene-model", "model", 3); // Weight 3 = very important
+  const environmentResource = trackResource("hdr-environment", "texture", 2);
 
   function getPerformanceLevel() {
     const gpu = (navigator as any).gpu;
@@ -36,6 +46,10 @@ export const HeroBackground = () => {
   useEffect(() => {
     if (!canvasRef.current) return;
     const performanceLevel = getPerformanceLevel();
+
+    // Track initialization
+    const initResource = trackResource("scene-init", "other", 1);
+    updateResourceProgress(initResource, 0.1);
 
     // Create a more robust PRNG with better state management
     const colorSeed = Date.now();
@@ -98,6 +112,8 @@ export const HeroBackground = () => {
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
     renderer.toneMappingExposure = 1.2;
 
+    updateResourceProgress(initResource, 0.3);
+
     // Load HDR environment map - progressive approach
     const loadHDR = () => {
       const rgbeLoader = new RGBELoader();
@@ -107,6 +123,7 @@ export const HeroBackground = () => {
       const lowResPromise = new Promise<THREE.Texture>((resolve) => {
         rgbeLoader.load("studio_small_08_1k.hdr", (texture) => {
           texture.mapping = THREE.EquirectangularReflectionMapping;
+          updateResourceProgress(environmentResource, 0.5);
           resolve(texture);
         });
       });
@@ -120,6 +137,8 @@ export const HeroBackground = () => {
                 `studio_small_08_${performanceLevel === "medium" ? "4k" : "8k"}.hdr`,
                 (texture) => {
                   texture.mapping = THREE.EquirectangularReflectionMapping;
+                  updateResourceProgress(environmentResource, 1);
+                  setResourceComplete(environmentResource, true);
                   resolve(texture);
                 },
               );
@@ -138,8 +157,13 @@ export const HeroBackground = () => {
           scene.environment = highResTexture;
           console.log("High-res HDR environment loaded");
         });
+      } else {
+        // If no high-res, complete the resource
+        setResourceComplete(environmentResource, true);
       }
     });
+
+    updateResourceProgress(initResource, 0.5);
 
     const setupPostProcessing = () => {
       const composer = new EffectComposer(renderer);
@@ -210,6 +234,8 @@ export const HeroBackground = () => {
     scene.add(backLight);
     scene.add(backLight.target);
 
+    updateResourceProgress(initResource, 0.7);
+
     // Define particle distribution
     const count =
       performanceLevel === "low"
@@ -269,6 +295,9 @@ export const HeroBackground = () => {
       colors.push(getRandomColor()); // Use your seeded random color generator
     }
 
+    // Initialization complete
+    setResourceComplete(initResource, true);
+
     // Setup GLTF loader
     const loader = new GLTFLoader();
     const dracoLoader = new DRACOLoader();
@@ -310,92 +339,111 @@ export const HeroBackground = () => {
     };
 
     // Load the model
-    loader.load("/models/scene.gltf", (gltf) => {
-      console.log("Model loaded successfully");
+    loader.load(
+      "/models/scene.gltf",
+      (gltf) => {
+        console.log("Model loaded successfully");
+        updateResourceProgress(mainModelResource, 0.7);
 
-      // Process each mesh in the model
-      let meshIndex = 0;
-      gltf.scene.traverse((child) => {
-        if (child instanceof THREE.Mesh) {
-          // Analyze geometry to determine best material
-          const geometry = child.geometry;
-          const boxSize = new THREE.Box3()
-            .setFromObject(child)
-            .getSize(new THREE.Vector3());
+        // Process each mesh in the model
+        let meshIndex = 0;
+        gltf.scene.traverse((child) => {
+          if (child instanceof THREE.Mesh) {
+            // Analyze geometry to determine best material
+            const geometry = child.geometry;
+            const boxSize = new THREE.Box3()
+              .setFromObject(child)
+              .getSize(new THREE.Vector3());
 
-          // Choose material strategy based on geometry characteristics
-          let material;
-          if (boxSize.z > boxSize.x * 1.5 || boxSize.y > boxSize.x * 1.5) {
-            // Long/tall parts - likely structural
-            material = materials.secondary.clone();
-          } else if (geometry.attributes.position.count < 100) {
-            // Small detail parts - likely accents
-            material = materials.accent.clone();
-            highlightedObjects.push(child); // Add to highlight selection
-          } else {
-            // Default parts
-            material = materials.primary.clone();
-          }
+            // Choose material strategy based on geometry characteristics
+            let material;
+            if (boxSize.z > boxSize.x * 1.5 || boxSize.y > boxSize.x * 1.5) {
+              // Long/tall parts - likely structural
+              material = materials.secondary.clone();
+            } else if (geometry.attributes.position.count < 100) {
+              // Small detail parts - likely accents
+              material = materials.accent.clone();
+              highlightedObjects.push(child); // Add to highlight selection
+            } else {
+              // Default parts
+              material = materials.primary.clone();
+            }
 
-          // Create instanced mesh
-          const instancedMesh = new THREE.InstancedMesh(
-            geometry,
-            material,
-            count,
-          );
-          instancedMesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
-          instancedMesh.castShadow = true;
-          instancedMesh.receiveShadow = true;
-          instancedMeshes.push(instancedMesh);
-          scene.add(instancedMesh);
+            // Create instanced mesh
+            const instancedMesh = new THREE.InstancedMesh(
+              geometry,
+              material,
+              count,
+            );
+            instancedMesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+            instancedMesh.castShadow = true;
+            instancedMesh.receiveShadow = true;
+            instancedMeshes.push(instancedMesh);
+            scene.add(instancedMesh);
 
-          meshIndex++;
-        }
-      });
-
-      // Store accent colors for animation
-      const accentColors = colors.map((color) => color.clone());
-
-      // Position each instance
-      for (let i = 0; i < count; i++) {
-        dummy.position.set(
-          positions[i * 3]!,
-          positions[i * 3 + 1]!,
-          positions[i * 3 + 2]!,
-        );
-
-        // Add subtle rotation variance
-        dummy.rotation.set(
-          seededRandom() * Math.PI * 0.25,
-          seededRandom() * Math.PI * 2,
-          seededRandom() * Math.PI * 0.25,
-        );
-
-        // Scale variation - slightly larger for better visibility
-        dummy.scale.setScalar(0.1 + seededRandom() * 0.06);
-        dummy.updateMatrix();
-
-        // Apply to all meshes
-        instancedMeshes.forEach((mesh, meshIdx) => {
-          mesh.setMatrixAt(i, dummy.matrix);
-          mesh.instanceMatrix.needsUpdate = true;
-
-          // Color the accent pieces differently for each instance
-          if (meshIdx % 3 === 2) {
-            // Assuming every third mesh is an accent piece
-            const material = mesh.material as THREE.MeshPhysicalMaterial;
-            const newMaterial = material.clone();
-            newMaterial.emissive.copy(accentColors[i % accentColors.length]!);
-            mesh.material = newMaterial;
+            meshIndex++;
           }
         });
-      }
 
-      // Update outline pass with highlighted objects
-      if (outlinePass) {
-        outlinePass.selectedObjects = highlightedObjects;
-      }
-    });
+        // Store accent colors for animation
+        const accentColors = colors.map((color) => color.clone());
+
+        // Position each instance
+        for (let i = 0; i < count; i++) {
+          dummy.position.set(
+            positions[i * 3]!,
+            positions[i * 3 + 1]!,
+            positions[i * 3 + 2]!,
+          );
+
+          // Add subtle rotation variance
+          dummy.rotation.set(
+            seededRandom() * Math.PI * 0.25,
+            seededRandom() * Math.PI * 2,
+            seededRandom() * Math.PI * 0.25,
+          );
+
+          // Scale variation - slightly larger for better visibility
+          dummy.scale.setScalar(0.1 + seededRandom() * 0.06);
+          dummy.updateMatrix();
+
+          // Apply to all meshes
+          instancedMeshes.forEach((mesh, meshIdx) => {
+            mesh.setMatrixAt(i, dummy.matrix);
+            mesh.instanceMatrix.needsUpdate = true;
+
+            // Color the accent pieces differently for each instance
+            if (meshIdx % 3 === 2) {
+              // Assuming every third mesh is an accent piece
+              const material = mesh.material as THREE.MeshPhysicalMaterial;
+              const newMaterial = material.clone();
+              newMaterial.emissive.copy(accentColors[i % accentColors.length]!);
+              mesh.material = newMaterial;
+            }
+          });
+        }
+
+        // Update outline pass with highlighted objects
+        if (outlinePass) {
+          outlinePass.selectedObjects = highlightedObjects;
+        }
+
+        // Model loading complete
+        setResourceComplete(mainModelResource, true);
+      },
+      // Progress callback
+      (progress) => {
+        if (progress.lengthComputable) {
+          const progressValue = progress.loaded / progress.total;
+          updateResourceProgress(mainModelResource, progressValue * 0.7); // Up to 70%
+        }
+      },
+      // Error callback
+      (error) => {
+        console.error("Error loading model:", error);
+        setResourceComplete(mainModelResource, false);
+      },
+    );
 
     // Create more sophisticated connection network
     const linesGeometry = new THREE.BufferGeometry();
