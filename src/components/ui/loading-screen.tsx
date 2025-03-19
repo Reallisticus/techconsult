@@ -38,6 +38,25 @@ export const LoadingScreen = ({ className }: LoadingScreenProps) => {
     }
   }, [progress, smoothProgress]);
 
+  // Debug logging
+  useEffect(() => {
+    console.log(
+      `Loading status: ${isLoading ? "Loading" : "Complete"}, Progress: ${progress}%`,
+    );
+  }, [isLoading, progress]);
+
+  // Force complete loading after 8 seconds as a fallback
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (isLoading) {
+        console.log("Forcing loading screen to complete after timeout");
+        setSmoothProgress(100);
+      }
+    }, 8000);
+
+    return () => clearTimeout(timer);
+  }, [isLoading]);
+
   return (
     <AnimatePresence>
       {isLoading && (
