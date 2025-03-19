@@ -6,7 +6,6 @@ import { useLanguage } from "~/i18n/context";
 import { getDisplayFontClass } from "~/lib/fonts";
 import { cn } from "~/lib/utils";
 import { useSmoothScroll } from "../../provider/SmoothScrollProvider";
-import { ScrollIndicator } from "../utils/ScrollIndicator";
 import { motion, useMotionValue, useSpring, useTransform } from "framer-motion";
 import gsap from "gsap";
 import { SplitText } from "gsap-trial/SplitText";
@@ -253,17 +252,6 @@ export const Hero = () => {
           </motion.div>
         </motion.div>
       </div>
-
-      {/* Interactive scroll indicator */}
-      {imagesLoaded && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 2 }}
-        >
-          <ScrollIndicator />
-        </motion.div>
-      )}
 
       {/* Tech keywords floating in 3D space */}
       {keywordAnimations.length > 0 && (

@@ -9,7 +9,6 @@ import {
   ReactNode,
 } from "react";
 import { HeroBackground } from "~/components/utils/HeroBackground";
-import { useBackgroundState } from "~/hooks/useBackgroundState";
 import { useSmoothScroll } from "./SmoothScrollProvider";
 
 interface BackgroundContextType {
@@ -29,7 +28,6 @@ interface BackgroundProviderProps {
 export const BackgroundProvider = ({ children }: BackgroundProviderProps) => {
   const backgroundRef = useRef<HTMLDivElement>(null);
   const [mounted, setMounted] = useState(false);
-  const {} = useBackgroundState();
   const { scroll } = useSmoothScroll();
 
   useEffect(() => {

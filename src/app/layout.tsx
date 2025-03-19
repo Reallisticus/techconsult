@@ -11,8 +11,6 @@ import { LanguageProvider } from "~/i18n/context";
 import { ptSans, roboto, silkscreen, spaceGrotesk } from "~/lib/fonts";
 import { BackgroundProvider } from "../provider/BackgroundProvider";
 import { SmoothScrollProvider } from "../provider/SmoothScrollProvider";
-import { LoadingProvider } from "../provider/LoadingProvider";
-import { LoadingScreen } from "~/components/ui/loading-screen";
 
 export default function RootLayout({
   children,
@@ -35,32 +33,29 @@ export default function RootLayout({
         <LanguageProvider defaultLanguage="en">
           <FontManager>
             <MotionConfig reducedMotion="user">
-              <LoadingProvider>
-                <SmoothScrollProvider
-                  options={{
-                    duration: 1.2,
-                    easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
-                    wheelMultiplier: 1,
-                    touchMultiplier: 2,
-                    smoothWheel: true,
-                    smoothTouch: false,
-                  }}
-                >
-                  <BackgroundProvider>
-                    {/* Loading overlay */}
-                    <LoadingScreen />
+              <SmoothScrollProvider
+                options={{
+                  duration: 1.2,
+                  easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+                  wheelMultiplier: 1,
+                  touchMultiplier: 2,
+                  smoothWheel: true,
+                  smoothTouch: false,
+                }}
+              >
+                <BackgroundProvider>
+                  {/* Loading overlay */}
 
-                    {/* Main app content */}
-                    <div className="transition-opacity duration-500">
-                      <Navbar />
-                      <main className="relative z-10">
-                        <TRPCReactProvider>{children}</TRPCReactProvider>
-                      </main>
-                      <Footer />
-                    </div>
-                  </BackgroundProvider>
-                </SmoothScrollProvider>
-              </LoadingProvider>
+                  {/* Main app content */}
+                  <div className="transition-opacity duration-500">
+                    <Navbar />
+                    <main className="relative z-10">
+                      <TRPCReactProvider>{children}</TRPCReactProvider>
+                    </main>
+                    <Footer />
+                  </div>
+                </BackgroundProvider>
+              </SmoothScrollProvider>
             </MotionConfig>
           </FontManager>
         </LanguageProvider>

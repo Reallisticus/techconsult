@@ -8,22 +8,12 @@ import { RenderPass } from "three/addons/postprocessing/RenderPass.js";
 import { UnrealBloomPass } from "three/addons/postprocessing/UnrealBloomPass.js";
 import { OutlinePass } from "three/addons/postprocessing/OutlinePass.js";
 import { RGBELoader } from "three/addons/loaders/RGBELoader.js";
-import { useResourceLoader } from "~/hooks/useResourceLoader";
-import { useLoadingManager } from "~/provider/LoadingProvider";
 
 export const HeroBackground = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const sceneRef = useRef<THREE.Scene | null>(null);
   const cameraRef = useRef<THREE.PerspectiveCamera | null>(null);
-
-  // // Use resource loader to track loading
-  const { trackResource, updateResourceProgress, setResourceComplete } =
-    useResourceLoader();
-
-  // // Register critical resources
-  const mainModelResource = trackResource("scene-model", "model", 3); // Weight 3 = very important
-  const environmentResource = trackResource("hdr-environment", "texture", 2);
 
   function getPerformanceLevel() {
     const gpu = (navigator as any).gpu;
@@ -44,16 +34,11 @@ export const HeroBackground = () => {
   }
 
   useEffect(() => {
-    // const initResource = trackResource("scene-init", "other", 1);
     try {
       if (!canvasRef.current) return;
       console.log("🔄 HeroBackground useEffect running");
 
       const performanceLevel = getPerformanceLevel();
-
-      // Track initialization
-
-      // updateResourceProgress(initResource, 0.1);
 
       // Create a more robust PRNG with better state management
       const colorSeed = Date.now();
@@ -116,8 +101,6 @@ export const HeroBackground = () => {
       renderer.toneMapping = THREE.ACESFilmicToneMapping;
       renderer.toneMappingExposure = 1.2;
 
-      // updateResourceProgress(initResource, 0.3);
-
       // Load HDR environment map - progressive approach
       try {
         const loadHDR = () => {
@@ -130,7 +113,6 @@ export const HeroBackground = () => {
           const lowResPromise = new Promise<THREE.Texture>((resolve) => {
             rgbeLoader.load("studio_small_08_1k.hdr", (texture) => {
               texture.mapping = THREE.EquirectangularReflectionMapping;
-              // updateResourceProgress(environmentResource, 0.5);
               resolve(texture);
             });
           });
@@ -144,8 +126,7 @@ export const HeroBackground = () => {
                     `studio_small_08_${performanceLevel === "medium" ? "4k" : "8k"}.hdr`,
                     (texture) => {
                       texture.mapping = THREE.EquirectangularReflectionMapping;
-                      // updateResourceProgress(environmentResource, 1);
-                      // setResourceComplete(environmentResource, true);
+
                       resolve(texture);
                     },
                   );
@@ -159,23 +140,15 @@ export const HeroBackground = () => {
           scene.environment = texture;
           console.log("Low-res HDR environment loaded");
 
-          if (highResPromise) {
-            highResPromise.then((highResTexture) => {
-              scene.environment = highResTexture;
-              console.log("High-res HDR environment loaded");
-            });
-          } else {
-            // If no high-res, complete the resource
-            // setResourceComplete(environmentResource, true);
-          }
+          highResPromise!.then((highResTexture) => {
+            scene.environment = highResTexture;
+            console.log("High-res HDR environment loaded");
+          });
         });
 
-        // updateResourceProgress(initResource, 0.5);
         console.log("✅ HDR environment initialized");
       } catch (hdrError) {
         console.error("❌ Error in HDR environment loading:", hdrError);
-        // Mark resource as complete anyway to prevent hanging
-        // setResourceComplete(environmentResource, true);
       }
 
       const setupPostProcessing = () => {
@@ -247,8 +220,6 @@ export const HeroBackground = () => {
       scene.add(backLight);
       scene.add(backLight.target);
 
-      // updateResourceProgress(initResource, 0.7);
-
       // Define particle distribution
       const count =
         performanceLevel === "low"
@@ -308,9 +279,6 @@ export const HeroBackground = () => {
         colors.push(getRandomColor()); // Use your seeded random color generator
       }
 
-      // Initialization complete
-      // setResourceComplete(initResource, true);
-
       // Setup GLTF loader
       const loader = new GLTFLoader();
       const dracoLoader = new DRACOLoader();
@@ -357,7 +325,6 @@ export const HeroBackground = () => {
           "/models/scene.gltf",
           (gltf) => {
             console.log("Model loaded successfully");
-            // updateResourceProgress(mainModelResource, 0.7);
 
             // Process each mesh in the model
             let meshIndex = 0;
@@ -448,26 +415,22 @@ export const HeroBackground = () => {
             }
 
             // Model loading complete
-            // setResourceComplete(mainModelResource, true);
           },
           // Progress callback
           (progress) => {
             if (progress.lengthComputable) {
               const progressValue = progress.loaded / progress.total;
-              // updateResourceProgress(mainModelResource, progressValue * 0.7); // Up to 70%
             }
           },
           // Error callback
           (error) => {
             console.error("Error loading model:", error);
-            // setResourceComplete(mainModelResource, false);
           },
         );
         console.log("✅ Model loading initialized");
       } catch (error) {
         console.error("❌ Error in model loading:", error);
         // Mark resource as complete anyway to prevent hanging
-        // setResourceComplete(mainModelResource, true);
       }
       // Create more sophisticated connection network
       const linesGeometry = new THREE.BufferGeometry();
@@ -859,11 +822,6 @@ export const HeroBackground = () => {
     } catch (e) {
       console.error("❌ CRITICAL ERROR in HeroBackground:", e);
       console.trace("Stack trace:");
-
-      // // Mark all resources as complete to avoid hanging the loading screen
-      // setResourceComplete(initResource, true);
-      // setResourceComplete(mainModelResource, true);
-      // setResourceComplete(environmentResource, true);
     }
   }, []);
 
