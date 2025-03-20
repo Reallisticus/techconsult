@@ -16,21 +16,34 @@ export const HeroBackground = () => {
   const cameraRef = useRef<THREE.PerspectiveCamera | null>(null);
 
   function getPerformanceLevel() {
-    const gpu = (navigator as any).gpu;
+    // Check if we're in a development environment
+    const isDev = process.env.NODE_ENV === "development";
+
+    // Mobile detection
     const mobile =
+      typeof window !== "undefined" &&
       /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
         navigator.userAgent,
       );
 
-    if (mobile) return "low";
-    if (gpu && gpu.requestAdapter) return "high";
+    // Low-end mobile - force low quality
+    if (mobile) {
+      return "low";
+    }
 
-    // Check general performance metrics
+    // Detect GPU capability
+    const gpu = (navigator as any).gpu;
+    if (gpu && gpu.requestAdapter) {
+      return isDev ? "medium" : "high"; // Use medium in dev environment for better dev experience
+    }
+
+    // Check hardware metrics
     const memoryPerformance = (navigator as any).deviceMemory || 4;
     const cpuCores = navigator.hardwareConcurrency || 4;
 
+    if (memoryPerformance <= 2 || cpuCores <= 2) return "low";
     if (memoryPerformance <= 4 || cpuCores <= 4) return "medium";
-    return "high";
+    return isDev ? "medium" : "high"; // Lower quality in dev for better dev experience
   }
 
   useEffect(() => {
@@ -123,7 +136,7 @@ export const HeroBackground = () => {
               ? null
               : new Promise<THREE.Texture>((resolve) => {
                   rgbeLoader.load(
-                    `studio_small_08_${performanceLevel === "medium" ? "4k" : "8k"}.hdr`,
+                    `studio_small_08_${performanceLevel === "medium" ? "2k" : "4k"}.hdr`,
                     (texture) => {
                       texture.mapping = THREE.EquirectangularReflectionMapping;
 

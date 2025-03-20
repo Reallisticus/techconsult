@@ -1,12 +1,10 @@
 "use client";
 
-import { useRef, useState, useEffect } from "react";
+import { useRef, useState } from "react";
 import { Button } from "../ui/button";
 import { useLanguage } from "~/i18n/context";
 import { ScrollReveal, Parallax } from "../../provider/SmoothScrollProvider";
 import { motion } from "framer-motion";
-import gsap from "gsap";
-import { ScrollTrigger } from "gsap/dist/ScrollTrigger";
 
 export const ServicesSection = () => {
   const { t } = useLanguage();
@@ -31,6 +29,38 @@ export const ServicesSection = () => {
       description: t("services.technicalArchitecture.description"),
       icon: "architecture",
     },
+    {
+      name: t("services.training"),
+      description: t("services.training.description"),
+      icon: "training",
+    },
+    {
+      name: t("services.configurations"),
+      description: t("services.configurations.description"),
+      icon: "config",
+    },
+    {
+      name: t("services.support"),
+      description: t("services.support.description"),
+      icon: "support",
+    },
+    {
+      name: t("services.consultations"),
+      description: t("services.consultations.description"),
+      icon: "consult",
+    },
+  ];
+
+  // Instead of mapping directly over serviceTranslations, create a reordered array:
+  const reorderedServices = [
+    serviceTranslations[0], // row1 col1 (index 0)
+    serviceTranslations[1], // row1 col2 (index 1)
+    serviceTranslations[2], // row1 col3 (index 2)
+    serviceTranslations[3], // row2 col1 (index 3)
+    serviceTranslations[4], // row2 col2 (index 4)
+    serviceTranslations[5], // row2 col3 (index 5) => "Support"
+    null, // row3 col1 (index 6) => Empty placeholder
+    serviceTranslations[6], // row3 col3 (index 8) => "Consultations"
   ];
 
   // Service icons
@@ -143,6 +173,104 @@ export const ServicesSection = () => {
             />
           </svg>
         );
+      case "training":
+        return (
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+            className="h-6 w-6"
+          >
+            <path
+              d="M12 2L2 7l10 5 10-5-10-5z"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+            <path
+              d="M2 12l10 5 10-5"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+        );
+      case "config":
+        return (
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+            className="h-6 w-6"
+          >
+            <circle
+              cx="12"
+              cy="12"
+              r="3"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+            <path
+              d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33h.1a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51h.1a1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82v.1a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+        );
+      case "support":
+        return (
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+            className="h-6 w-6"
+          >
+            <path
+              d="M22 12c0 5.523-4.477 10-10 10S2 17.523 2 12 6.477 2 12 2s10 4.477 10 10z"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+            <path
+              d="M12 8v4"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+            <path
+              d="M12 16h.01"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+        );
+      case "consult":
+        return (
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+            className="h-6 w-6"
+          >
+            <path
+              d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v10z"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+        );
       default:
         return null;
     }
@@ -220,190 +348,197 @@ export const ServicesSection = () => {
 
         <div
           ref={cardsRef}
-          className="relative grid grid-cols-1 gap-8 md:grid-cols-3"
+          className="relative grid grid-cols-1 gap-8 md:grid-cols-3 md:grid-rows-3"
+          style={{ gridAutoRows: "1fr" }}
         >
-          {serviceTranslations.map((service, index) => (
-            <Parallax key={`service-${index}`} speed={0.1} direction="up">
-              <motion.div
-                className="service-card group relative h-full overflow-hidden rounded-xl bg-gradient-to-b from-neutral-900/80 to-neutral-950/80 backdrop-blur-sm"
-                onHoverStart={() => handleCardHover(index)}
-                onHoverEnd={() => handleCardHover(null)}
-                whileHover={{
-                  y: -10,
-                  transition: { type: "spring", stiffness: 300, damping: 15 },
-                }}
-                initial={{ opacity: 0, y: 50 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: index * 0.1 }}
-                viewport={{ once: true, margin: "-50px" }}
-              >
-                <div className="flex h-full flex-col p-8">
-                  <motion.div
-                    className="mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-primary-800/20"
-                    whileHover={{
-                      rotate: 360,
-                      scale: 1.1,
-                      backgroundColor: "rgba(124, 58, 237, 0.3)", // accent color with opacity
-                    }}
-                    transition={{ duration: 0.5 }}
-                  >
+          {reorderedServices.map((service, index) => {
+            if (!service) {
+              return <div key={`service-${index}`} className="invisible" />;
+            }
+
+            return (
+              <Parallax key={`service-${index}`} speed={0.1} direction="up">
+                <motion.div
+                  className="service-card group relative h-full min-h-[300px] overflow-hidden rounded-xl bg-gradient-to-b from-neutral-900/80 to-neutral-950/80 backdrop-blur-sm"
+                  onHoverStart={() => handleCardHover(index)}
+                  onHoverEnd={() => handleCardHover(null)}
+                  whileHover={{
+                    y: -10,
+                    transition: { type: "spring", stiffness: 300, damping: 15 },
+                  }}
+                  initial={{ opacity: 0, y: 50 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.6, delay: index * 0.1 }}
+                  viewport={{ once: true, margin: "-50px" }}
+                >
+                  <div className="flex h-full flex-col p-8">
                     <motion.div
-                      className="text-primary-400"
-                      animate={{
-                        scale: activeIndex === index ? [1, 1.1, 1] : 1,
+                      className="mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-primary-800/20"
+                      whileHover={{
+                        rotate: 360,
+                        scale: 1.1,
+                        backgroundColor: "rgba(124, 58, 237, 0.3)", // accent color with opacity
                       }}
-                      transition={{
-                        duration: 1,
-                        repeat: activeIndex === index ? Infinity : 0,
-                        repeatType: "reverse",
-                      }}
+                      transition={{ duration: 0.5 }}
                     >
-                      {renderIcon(service.icon)}
+                      <motion.div
+                        className="text-primary-400"
+                        animate={{
+                          scale: activeIndex === index ? [1, 1.1, 1] : 1,
+                        }}
+                        transition={{
+                          duration: 1,
+                          repeat: activeIndex === index ? Infinity : 0,
+                          repeatType: "reverse",
+                        }}
+                      >
+                        {renderIcon(service.icon)}
+                      </motion.div>
                     </motion.div>
-                  </motion.div>
 
-                  <motion.h3
-                    className="service-title mb-2 text-2xl font-bold transition-colors group-hover:text-accent-500"
-                    initial={{ opacity: 0, x: -20 }}
-                    whileInView={{ opacity: 1, x: 0 }}
-                    transition={{ duration: 0.5, delay: 0.2 + index * 0.1 }}
-                    viewport={{ once: true }}
-                  >
-                    {service.name}
-                  </motion.h3>
-
-                  <motion.p
-                    className="mb-6 flex-grow text-neutral-400"
-                    initial={{ opacity: 0 }}
-                    whileInView={{ opacity: 1 }}
-                    transition={{ duration: 0.5, delay: 0.3 + index * 0.1 }}
-                    viewport={{ once: true }}
-                  >
-                    {service.description}
-                  </motion.p>
-
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="flex items-center p-0 text-primary-400 transition-colors group-hover:text-accent-500"
-                  >
-                    {t("services.learnMore")}
-                    <motion.svg
-                      width="20"
-                      height="20"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="ml-2"
-                      animate={{
-                        x: activeIndex === index ? [0, 5, 0] : 0,
-                      }}
-                      transition={{
-                        duration: 1,
-                        repeat: activeIndex === index ? Infinity : 0,
-                        repeatType: "reverse",
-                        ease: "easeInOut",
-                      }}
+                    <motion.h3
+                      className="service-title mb-2 text-2xl font-bold transition-colors group-hover:text-accent-500"
+                      initial={{ opacity: 0, x: -20 }}
+                      whileInView={{ opacity: 1, x: 0 }}
+                      transition={{ duration: 0.5, delay: 0.2 + index * 0.1 }}
+                      viewport={{ once: true }}
                     >
-                      <path
-                        d="M5 12h14M12 5l7 7-7 7"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                    </motion.svg>
-                  </Button>
-                </div>
+                      {service.name}
+                    </motion.h3>
 
-                {/* Animated gradient border */}
-                <div className="absolute inset-0 rounded-xl border border-transparent transition-all duration-300 group-hover:border-accent-500/50" />
+                    <motion.p
+                      className="mb-6 flex-grow text-neutral-400"
+                      initial={{ opacity: 0 }}
+                      whileInView={{ opacity: 1 }}
+                      transition={{ duration: 0.5, delay: 0.3 + index * 0.1 }}
+                      viewport={{ once: true }}
+                    >
+                      {service.description}
+                    </motion.p>
 
-                {/* Animated corner accents */}
-                <motion.div
-                  className="absolute left-0 top-0 h-4 w-4 rounded-tl-xl border-l border-t border-transparent transition-all duration-300 group-hover:border-accent-500"
-                  animate={
-                    activeIndex === index
-                      ? {
-                          borderColor: [
-                            "rgba(124, 58, 237, 0.5)",
-                            "rgba(124, 58, 237, 0.8)",
-                            "rgba(124, 58, 237, 0.5)",
-                          ],
-                        }
-                      : {}
-                  }
-                  transition={{ duration: 2, repeat: Infinity }}
-                />
-                <motion.div
-                  className="absolute right-0 top-0 h-4 w-4 rounded-tr-xl border-r border-t border-transparent transition-all duration-300 group-hover:border-accent-500"
-                  animate={
-                    activeIndex === index
-                      ? {
-                          borderColor: [
-                            "rgba(124, 58, 237, 0.5)",
-                            "rgba(124, 58, 237, 0.8)",
-                            "rgba(124, 58, 237, 0.5)",
-                          ],
-                        }
-                      : {}
-                  }
-                  transition={{ duration: 2, repeat: Infinity, delay: 0.5 }}
-                />
-                <motion.div
-                  className="absolute bottom-0 left-0 h-4 w-4 rounded-bl-xl border-b border-l border-transparent transition-all duration-300 group-hover:border-accent-500"
-                  animate={
-                    activeIndex === index
-                      ? {
-                          borderColor: [
-                            "rgba(124, 58, 237, 0.5)",
-                            "rgba(124, 58, 237, 0.8)",
-                            "rgba(124, 58, 237, 0.5)",
-                          ],
-                        }
-                      : {}
-                  }
-                  transition={{ duration: 2, repeat: Infinity, delay: 1 }}
-                />
-                <motion.div
-                  className="absolute bottom-0 right-0 h-4 w-4 rounded-br-xl border-b border-r border-transparent transition-all duration-300 group-hover:border-accent-500"
-                  animate={
-                    activeIndex === index
-                      ? {
-                          borderColor: [
-                            "rgba(124, 58, 237, 0.5)",
-                            "rgba(124, 58, 237, 0.8)",
-                            "rgba(124, 58, 237, 0.5)",
-                          ],
-                        }
-                      : {}
-                  }
-                  transition={{ duration: 2, repeat: Infinity, delay: 1.5 }}
-                />
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="flex items-center p-0 text-primary-400 transition-colors group-hover:text-accent-500"
+                    >
+                      {t("services.learnMore")}
+                      <motion.svg
+                        width="20"
+                        height="20"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="ml-2"
+                        animate={{
+                          x: activeIndex === index ? [0, 5, 0] : 0,
+                        }}
+                        transition={{
+                          duration: 1,
+                          repeat: activeIndex === index ? Infinity : 0,
+                          repeatType: "reverse",
+                          ease: "easeInOut",
+                        }}
+                      >
+                        <path
+                          d="M5 12h14M12 5l7 7-7 7"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                      </motion.svg>
+                    </Button>
+                  </div>
 
-                {/* Light effect on hover */}
-                <motion.div
-                  className="absolute inset-0 z-[-1] rounded-xl bg-gradient-to-r from-transparent via-accent-500/5 to-transparent opacity-0 blur-sm transition-opacity duration-300 group-hover:opacity-100"
-                  style={{
-                    background:
-                      "linear-gradient(90deg, transparent, rgba(124, 58, 237, 0.05), transparent)",
-                  }}
-                  animate={
-                    activeIndex === index
-                      ? {
-                          x: ["-100%", "200%"],
-                        }
-                      : {}
-                  }
-                  transition={{
-                    duration: 1.5,
-                    repeat: Infinity,
-                    ease: "linear",
-                  }}
-                />
-              </motion.div>
-            </Parallax>
-          ))}
+                  {/* Animated gradient border */}
+                  <div className="absolute inset-0 rounded-xl border border-transparent transition-all duration-300 group-hover:border-accent-500/50" />
+
+                  {/* Animated corner accents */}
+                  <motion.div
+                    className="absolute left-0 top-0 h-4 w-4 rounded-tl-xl border-l border-t border-transparent transition-all duration-300 group-hover:border-accent-500"
+                    animate={
+                      activeIndex === index
+                        ? {
+                            borderColor: [
+                              "rgba(124, 58, 237, 0.5)",
+                              "rgba(124, 58, 237, 0.8)",
+                              "rgba(124, 58, 237, 0.5)",
+                            ],
+                          }
+                        : {}
+                    }
+                    transition={{ duration: 2, repeat: Infinity }}
+                  />
+                  <motion.div
+                    className="absolute right-0 top-0 h-4 w-4 rounded-tr-xl border-r border-t border-transparent transition-all duration-300 group-hover:border-accent-500"
+                    animate={
+                      activeIndex === index
+                        ? {
+                            borderColor: [
+                              "rgba(124, 58, 237, 0.5)",
+                              "rgba(124, 58, 237, 0.8)",
+                              "rgba(124, 58, 237, 0.5)",
+                            ],
+                          }
+                        : {}
+                    }
+                    transition={{ duration: 2, repeat: Infinity, delay: 0.5 }}
+                  />
+                  <motion.div
+                    className="absolute bottom-0 left-0 h-4 w-4 rounded-bl-xl border-b border-l border-transparent transition-all duration-300 group-hover:border-accent-500"
+                    animate={
+                      activeIndex === index
+                        ? {
+                            borderColor: [
+                              "rgba(124, 58, 237, 0.5)",
+                              "rgba(124, 58, 237, 0.8)",
+                              "rgba(124, 58, 237, 0.5)",
+                            ],
+                          }
+                        : {}
+                    }
+                    transition={{ duration: 2, repeat: Infinity, delay: 1 }}
+                  />
+                  <motion.div
+                    className="absolute bottom-0 right-0 h-4 w-4 rounded-br-xl border-b border-r border-transparent transition-all duration-300 group-hover:border-accent-500"
+                    animate={
+                      activeIndex === index
+                        ? {
+                            borderColor: [
+                              "rgba(124, 58, 237, 0.5)",
+                              "rgba(124, 58, 237, 0.8)",
+                              "rgba(124, 58, 237, 0.5)",
+                            ],
+                          }
+                        : {}
+                    }
+                    transition={{ duration: 2, repeat: Infinity, delay: 1.5 }}
+                  />
+
+                  {/* Light effect on hover */}
+                  <motion.div
+                    className="absolute inset-0 z-[-1] rounded-xl bg-gradient-to-r from-transparent via-accent-500/5 to-transparent opacity-0 blur-sm transition-opacity duration-300 group-hover:opacity-100"
+                    style={{
+                      background:
+                        "linear-gradient(90deg, transparent, rgba(124, 58, 237, 0.05), transparent)",
+                    }}
+                    animate={
+                      activeIndex === index
+                        ? {
+                            x: ["-100%", "200%"],
+                          }
+                        : {}
+                    }
+                    transition={{
+                      duration: 1.5,
+                      repeat: Infinity,
+                      ease: "linear",
+                    }}
+                  />
+                </motion.div>
+              </Parallax>
+            );
+          })}
         </div>
       </div>
     </section>

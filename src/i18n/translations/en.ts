@@ -1,3 +1,5 @@
+import { caseStudiesEN } from "./case-studies/en";
+
 // src/i18n/translations/en.ts
 export const en = {
   // Common
@@ -40,6 +42,18 @@ export const en = {
   "services.technicalArchitecture": "Technical Architecture",
   "services.technicalArchitecture.description":
     "Designing robust, scalable technical solutions",
+  "services.training": "Training",
+  "services.training.description":
+    "Professional training to develop technological skills.",
+  "services.configurations": "Configurations",
+  "services.configurations.description":
+    "Setup and optimization of system configurations.",
+  "services.support": "Support",
+  "services.support.description":
+    "Professional support to ensure system stability and security.",
+  "services.consultations": "Consultations",
+  "services.consultations.description":
+    "Strategic consultations to optimize IT solutions.",
 
   // CTA Section
   "cta.title": "Ready to transform your business with technology?",

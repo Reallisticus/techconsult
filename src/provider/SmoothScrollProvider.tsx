@@ -241,57 +241,77 @@ export function SmoothScrollProvider({
   const raf = useCallback(
     (time: number) => {
       if (!lenis) return;
+
+      // Process multiple frames at once to avoid RAF congestion
       lenis.raf(time);
-      requestRef.current = requestAnimationFrame(raf);
+
+      if (document.visibilityState === "visible") {
+        requestRef.current = requestAnimationFrame(raf);
+      } else {
+        // Don't animate when tab is hidden
+        setTimeout(() => {
+          requestRef.current = requestAnimationFrame(raf);
+        }, 300);
+      }
     },
     [lenis],
+  );
+
+  const handleScroll = useCallback(
+    (e: {
+      scroll: number;
+      progress: number;
+      velocity: number;
+      direction: 1 | -1;
+    }) => {
+      // Only update state if values have significantly changed
+      const prevState = prevScrollRef.current;
+      const newDirection: "up" | "down" | null =
+        e.direction === 1 ? "down" : "up";
+
+      // Check for meaningful changes to avoid needless re-renders
+      // Use percentage-based thresholds for scroll position
+      const currentScrollThreshold = Math.max(1, scrollState.limit * 0.001);
+      const significantScrollChange =
+        Math.abs(prevState.current - e.scroll) > currentScrollThreshold;
+      const significantProgressChange =
+        Math.abs(prevState.progress - e.progress) > 0.01;
+      const significantVelocityChange =
+        Math.abs(prevState.velocity - e.velocity) > 0.05;
+      const directionChanged = prevState.direction !== newDirection;
+
+      const hasSignificantChange =
+        significantScrollChange ||
+        significantProgressChange ||
+        significantVelocityChange ||
+        directionChanged;
+
+      if (hasSignificantChange) {
+        const newState = {
+          current: e.scroll,
+          progress: e.progress,
+          velocity: e.velocity,
+          direction: newDirection,
+          limit: scrollState.limit,
+        };
+
+        prevScrollRef.current = {
+          current: e.scroll,
+          progress: e.progress,
+          velocity: e.velocity,
+          direction: newDirection,
+        };
+
+        // Use functional state update to avoid stale closures
+        setScrollState(newState);
+      }
+    },
+    [scrollState.limit],
   );
 
   // Set up scroll event handler with performance optimization
   useEffect(() => {
     if (!lenis) return;
-
-    // Use efficient scroll handler
-    const handleScroll = throttle(
-      (e: {
-        scroll: number;
-        progress: number;
-        velocity: number;
-        direction: 1 | -1;
-      }) => {
-        // Only update state if values have significantly changed
-        const prevState = prevScrollRef.current;
-        const newDirection: "up" | "down" | null =
-          e.direction === 1 ? "down" : "up";
-
-        // Check for meaningful changes before triggering state update
-        const hasSignificantChange =
-          Math.abs(prevState.current - e.scroll) > 1 ||
-          Math.abs(prevState.progress - e.progress) > 0.01 ||
-          Math.abs(prevState.velocity - e.velocity) > 0.01 ||
-          prevState.direction !== newDirection;
-
-        if (hasSignificantChange) {
-          const newState = {
-            current: e.scroll,
-            progress: e.progress,
-            velocity: e.velocity,
-            direction: newDirection,
-            limit: scrollState.limit,
-          };
-
-          prevScrollRef.current = {
-            current: e.scroll,
-            progress: e.progress,
-            velocity: e.velocity,
-            direction: newDirection,
-          };
-
-          setScrollState(newState);
-        }
-      },
-      16,
-    ); // ~60fps throttling for smooth performance
 
     lenis.on("scroll", handleScroll);
     requestRef.current = requestAnimationFrame(raf);
@@ -523,23 +543,37 @@ export function ScrollReveal({
   useEffect(() => {
     if (!ref.current) return;
 
+    // Use IntersectionObserver with better thresholds
     const observer = new IntersectionObserver(
-      ([entry]) => {
-        const isNowInView = entry?.isIntersecting ?? false;
-        setIsInView(isNowInView);
+      (entries) => {
+        const [entry] = entries;
+        const isNowInView = entry?.intersectionRatio! > threshold;
 
-        if (isNowInView) {
-          controls.start("visible");
-          if (once) {
-            observer.disconnect();
+        // Only update state if visibility actually changed
+        if (isNowInView !== isInView) {
+          setIsInView(isNowInView);
+
+          if (isNowInView) {
+            // Use requestIdleCallback if available to defer animation to idle time
+            if (window.requestIdleCallback) {
+              window.requestIdleCallback(() => controls.start("visible"), {
+                timeout: 300,
+              });
+            } else {
+              controls.start("visible");
+            }
+
+            if (once) {
+              observer.disconnect();
+            }
+          } else if (!once) {
+            controls.start("hidden");
           }
-        } else if (!once) {
-          controls.start("hidden");
         }
       },
       {
         threshold,
-        rootMargin: "0px 0px -10% 0px", // Trigger slightly before element comes into view
+        rootMargin: "0px 0px -10% 0px",
       },
     );
 
@@ -548,7 +582,7 @@ export function ScrollReveal({
     return () => {
       observer.disconnect();
     };
-  }, [controls, once, threshold]);
+  }, [controls, once, threshold, isInView]);
 
   const Tag = Component as any;
   return (

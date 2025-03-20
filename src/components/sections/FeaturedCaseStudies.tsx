@@ -3,6 +3,7 @@ import { useAnimationInView } from "../../hooks/useAnimation";
 import { useLanguage } from "../../i18n/context";
 import { ScrollReveal } from "../../provider/SmoothScrollProvider";
 import { Button } from "../ui/button";
+import { type CaseStudyTranslations } from "~/i18n/translations/case-studies";
 
 export const FeaturedCaseStudies = () => {
   const { t } = useLanguage();
@@ -10,59 +11,29 @@ export const FeaturedCaseStudies = () => {
     threshold: 0.1,
   });
 
-  const caseStudies = [
-    {
-      title: "Enterprise Digital Transformation",
-      client: "Financial Services Corp.",
-      description:
-        "Complete technological overhaul delivering 40% improved operational efficiency.",
-      image: "/images/case1.webp",
-      tags: [
-        "Digital Transformation",
-        "Cloud Migration",
-        "Process Optimization",
-      ],
-    },
-    {
-      title: "AI-Driven Analytics Platform",
-      client: "Retail Chain",
-      description:
-        "Custom analytics solution providing real-time business intelligence.",
-      image: "/images/case2.webp",
-      tags: ["AI/ML", "Data Analytics", "Strategic Planning"],
-    },
-    {
-      title: "Infrastructure Modernization",
-      client: "Healthcare Provider",
-      description:
-        "Scalable cloud architecture enabling seamless growth and compliance.",
-      image: "/images/case3.webp",
-      tags: ["Technical Architecture", "Security", "Compliance"],
-    },
-  ];
+  // Get case studies from translations
+  const caseStudies = t("caseStudies.cases") as CaseStudyTranslations["cases"];
 
   return (
     <section ref={studiesRef} className="bg-transparent py-24">
       <div className="container mx-auto px-4">
         <div className="mb-16 text-center">
           <span className="font-mono uppercase tracking-wider text-accent-500">
-            Recent Work
+            {t("caseStudies.subtitle")}
           </span>
           <h2 className="mb-6 text-4xl font-bold md:text-5xl">
-            Featured Case Studies
+            {t("caseStudies.title")}
           </h2>
           <p className="mx-auto max-w-2xl text-lg text-neutral-300">
-            Discover how we've helped businesses transform their operations and
-            achieve remarkable results through strategic technology
-            implementations.
+            {t("caseStudies.description")}
           </p>
         </div>
 
         <ScrollReveal direction="up" threshold={0.1}>
           <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
-            {caseStudies.map((study, index) => (
+            {caseStudies.map((study) => (
               <motion.div
-                key={index}
+                key={study.id} // Using id as key instead of index
                 className="group relative overflow-hidden rounded-xl bg-neutral-900/50 backdrop-blur-sm"
                 whileHover={{ y: -10 }}
                 transition={{ type: "spring", stiffness: 300, damping: 15 }}
@@ -101,7 +72,7 @@ export const FeaturedCaseStudies = () => {
                     size="sm"
                     className="flex items-center p-0 text-accent-400"
                   >
-                    View Case Study
+                    {t("caseStudies.viewCaseStudy")}
                     <motion.svg
                       width="20"
                       height="20"
@@ -129,7 +100,7 @@ export const FeaturedCaseStudies = () => {
 
         <div className="mt-12 text-center">
           <Button href="/case-studies" variant="outline" size="lg" magnetic>
-            View All Case Studies
+            {t("caseStudies.viewAllCaseStudies")}
           </Button>
         </div>
       </div>

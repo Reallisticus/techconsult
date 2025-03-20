@@ -7,8 +7,6 @@ import { getDisplayFontClass } from "~/lib/fonts";
 import { cn } from "~/lib/utils";
 import { useSmoothScroll } from "../../provider/SmoothScrollProvider";
 import { motion, useMotionValue, useSpring, useTransform } from "framer-motion";
-import gsap from "gsap";
-import { SplitText } from "gsap-trial/SplitText";
 import { useIsomorphicLayoutEffect } from "~/hooks/useIsomorphicLayout";
 
 // Define tech keywords outside component to avoid re-creation on renders
@@ -43,7 +41,6 @@ export const Hero = () => {
   const headlineRef = useRef<HTMLDivElement>(null);
   const gsapCtxRef = useRef<gsap.Context | null>(null);
   const [imagesLoaded, setImagesLoaded] = useState(true);
-  const { lenis } = useSmoothScroll();
   const displayFontClass = getDisplayFontClass(language);
   const mouseX = useMotionValue(0);
   const mouseY = useMotionValue(0);
@@ -93,52 +90,126 @@ export const Hero = () => {
     return () => window.removeEventListener("mousemove", handleMouseMove);
   }, [mouseX, mouseY]);
 
-  // Handle GSAP animations for headlines and content entry
   useIsomorphicLayoutEffect(() => {
     if (!headlineRef.current || !imagesLoaded || gsapCtxRef.current) return;
 
-    gsap.registerPlugin(SplitText);
-    const ctx = gsap.context(() => {
-      // Split text into lines and chars for detailed animation
-      const headlines = gsap.utils.toArray<HTMLElement>(".headline");
-      headlines.forEach((headline, i) => {
-        const split = new SplitText(headline, { type: "chars,lines" });
-        gsap.from(split.chars, {
-          opacity: 0,
-          y: 50,
-          rotateX: -90,
-          stagger: 0.02,
-          duration: 0.5,
-          ease: "back.out(1.7)",
-          delay: 0.2 + i * 0.1,
+    // Safe import of GSAP
+    import("gsap").then(({ gsap }) => {
+      // Try to import SplitText - it's optional
+      let SplitText;
+      try {
+        import("gsap-trial/SplitText")
+          .then((module) => {
+            SplitText = module.SplitText;
+            gsap.registerPlugin(SplitText);
+            animateText(gsap, SplitText);
+          })
+          .catch(() => {
+            // Fallback animation without SplitText
+            animateTextFallback(gsap);
+          });
+      } catch (e) {
+        // Fallback animation without SplitText
+        animateTextFallback(gsap);
+      }
+    });
+
+    const animateText = (gsap: any, SplitText: any) => {
+      const ctx = gsap.context(() => {
+        // Split text into lines and chars for detailed animation
+        const headlines = gsap.utils.toArray(".headline");
+        headlines.forEach((headline: any, i: number) => {
+          if (!headline) return; // Skip if element not found
+
+          const split = new SplitText(headline, { type: "chars,lines" });
+          gsap.from(split.chars, {
+            opacity: 0,
+            y: 50,
+            rotateX: -90,
+            stagger: 0.02,
+            duration: 0.5,
+            ease: "back.out(1.7)",
+            delay: 0.2 + i * 0.1,
+          });
         });
-      });
 
-      // Animate the subheading separately
-      gsap.from(".hero-subheading", {
-        opacity: 0,
-        y: 30,
-        duration: 0.6,
-        delay: 0.8,
-        ease: "power3.out",
-      });
+        // Animate the subheading separately
+        const subheading = document.querySelector(".hero-subheading");
+        if (subheading) {
+          gsap.from(subheading, {
+            opacity: 0,
+            y: 30,
+            duration: 0.6,
+            delay: 0.8,
+            ease: "power3.out",
+          });
+        }
 
-      // Animate the buttons
-      gsap.from(".hero-buttons button", {
-        opacity: 0,
-        y: 40,
-        stagger: 0.15,
-        duration: 0.7,
-        delay: 1,
-        ease: "power2.out",
-      });
-    }, heroRef);
+        // Animate the buttons with safety check
+        const buttons = document.querySelectorAll(".hero-buttons button");
+        if (buttons.length > 0) {
+          gsap.from(buttons, {
+            opacity: 0,
+            y: 40,
+            stagger: 0.15,
+            duration: 0.7,
+            delay: 1,
+            ease: "power2.out",
+          });
+        }
+      }, heroRef);
 
-    gsapCtxRef.current = ctx;
+      gsapCtxRef.current = ctx;
+    };
+
+    const animateTextFallback = (gsap: any) => {
+      const ctx = gsap.context(() => {
+        // Simple animation without SplitText
+        const headlines = document.querySelectorAll(".headline");
+        headlines.forEach((headline: Element, i: number) => {
+          gsap.from(headline, {
+            opacity: 0,
+            y: 30,
+            duration: 0.6,
+            delay: 0.2 + i * 0.15,
+            ease: "power2.out",
+          });
+        });
+
+        // Animate the subheading
+        const subheading = document.querySelector(".hero-subheading");
+        if (subheading) {
+          gsap.from(subheading, {
+            opacity: 0,
+            y: 30,
+            duration: 0.6,
+            delay: 0.8,
+            ease: "power3.out",
+          });
+        }
+
+        // Animate the buttons with safety check
+        const buttons = document.querySelectorAll(".hero-buttons button");
+        if (buttons.length > 0) {
+          gsap.from(buttons, {
+            opacity: 0,
+            y: 40,
+            stagger: 0.15,
+            duration: 0.7,
+            delay: 1,
+            ease: "power2.out",
+          });
+        }
+      }, heroRef);
+
+      gsapCtxRef.current = ctx;
+    };
 
     return () => {
-      ctx.revert();
-      gsapCtxRef.current = null;
+      if (gsapCtxRef.current) {
+        gsapCtxRef.current.revert();
+        gsapCtxRef.current = null;
+      }
     };
   }, [imagesLoaded]);
 
@@ -155,28 +226,7 @@ export const Hero = () => {
       ref={heroRef}
       className="relative min-h-[100vh] w-full overflow-hidden bg-transparent"
     >
-      <div className="absolute inset-0 z-0 overflow-hidden">
-        {/* Animated gradient circles following mouse */}
-        <motion.div
-          className="absolute left-1/2 top-1/3 h-96 w-96 rounded-full bg-primary-500/10 blur-3xl"
-          style={{
-            x: moveX,
-            y: moveY,
-            rotate: rotateX,
-          }}
-        />
-        <motion.div
-          className="absolute right-1/3 top-2/3 h-64 w-64 rounded-full bg-accent-500/10 blur-3xl"
-          style={{
-            x,
-            y,
-            rotate: rotateY,
-          }}
-        />
-      </div>
-
       <div className="relative min-h-screen w-full overflow-hidden">
-        {/* Simplified motion - static values to avoid recalculation */}
         <motion.div
           className="relative"
           animate={{ y: floatY }}
