@@ -1,5 +1,9 @@
 // src/i18n/translations/bg.ts
 import { caseStudiesBG } from "./case-studies/bg";
+import { contactBG } from "./contact/bg";
+import { teamBG } from "./team/bg";
+import { techStackBG } from "./tech-stack/bg";
+import { testimonialsBG } from "./testimonials/bg";
 
 export const bg = {
   // Common
@@ -61,7 +65,12 @@ export const bg = {
     "Свържете се с нас, за да обсъдим как можем да Ви помогнем да постигнете целите си чрез иновативни технологични решения.",
   "cta.button": "Заявете консултация",
 
-  // Case Studies - imported from separate file
+  // Case Studies - imported from separate file\
+  caseStudies: caseStudiesBG,
+  testimonials: testimonialsBG,
+  team: teamBG,
+  techStack: techStackBG,
+  contact: contactBG,
 
   // Footer
   "footer.quickLinks": "Бързи връзки",

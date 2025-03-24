@@ -11,7 +11,7 @@ export const CtaSection = () => {
   const isInView = useInView(containerRef, { once: false, amount: 0.3 });
 
   return (
-    <section className="relative py-24">
+    <section className="relative py-12 md:py-16 lg:py-24">
       {/* Glossy background effect */}
       <div className="absolute inset-0 overflow-hidden">
         {/* Split background colors */}
@@ -22,11 +22,11 @@ export const CtaSection = () => {
         <div className="absolute inset-0 bg-black/30 backdrop-blur-[2px]" />
 
         {/* Glossy highlights */}
-        <div className="absolute -left-1/4 top-0 h-[300px] w-[600px] rotate-45 bg-white/5 blur-3xl" />
-        <div className="absolute -right-1/4 bottom-0 h-[300px] w-[600px] rotate-45 bg-white/5 blur-3xl" />
+        <div className="absolute -left-1/4 top-0 h-[200px] w-[400px] rotate-45 bg-white/5 blur-3xl md:h-[300px] md:w-[600px]" />
+        <div className="absolute -right-1/4 bottom-0 h-[200px] w-[400px] rotate-45 bg-white/5 blur-3xl md:h-[300px] md:w-[600px]" />
       </div>
 
-      <div className="container relative mx-auto px-48">
+      <div className="container relative mx-auto px-4 sm:px-6 lg:px-8 xl:px-12">
         <motion.div
           ref={containerRef}
           className="relative mx-auto overflow-hidden"
@@ -114,8 +114,8 @@ export const CtaSection = () => {
               </svg>
             </div>
 
-            {/* Left side (visual) */}
-            <div className="relative p-12 md:w-2/5">
+            {/* Left side (visual) - hidden on mobile, shown on tablet+ */}
+            <div className="relative hidden p-6 md:block md:w-2/5 md:p-8 lg:p-12">
               <div className="relative h-full">
                 {/* Decorative tech elements */}
                 <svg
@@ -207,7 +207,7 @@ export const CtaSection = () => {
                 {/* Central icon */}
                 <div className="absolute left-1/2 top-1/2 flex -translate-x-1/2 -translate-y-1/2 items-center justify-center">
                   <motion.div
-                    className="flex h-24 w-24 items-center justify-center rounded-full bg-black/60 shadow-lg backdrop-blur"
+                    className="flex h-16 w-16 items-center justify-center rounded-full bg-black/60 shadow-lg backdrop-blur md:h-20 md:w-20 lg:h-24 lg:w-24"
                     animate={{
                       boxShadow: [
                         "0 0 0 rgba(124, 58, 237, 0.3)",
@@ -228,12 +228,12 @@ export const CtaSection = () => {
                     ></div>
 
                     <svg
-                      width="48"
-                      height="48"
+                      width="36"
+                      height="36"
                       viewBox="0 0 24 24"
                       fill="none"
                       xmlns="http://www.w3.org/2000/svg"
-                      className="relative text-accent-400"
+                      className="relative text-accent-400 md:h-10 md:w-10 lg:h-12 lg:w-12"
                     >
                       <path
                         d="M12 16V8M8 12h8"
@@ -256,10 +256,57 @@ export const CtaSection = () => {
             </div>
 
             {/* Right side (content) */}
-            <div className="relative p-8 md:w-3/5 md:p-12">
-              <div className="relative z-10 space-y-6">
+            <div className="relative p-6 sm:p-8 md:w-3/5 md:p-8 lg:p-12">
+              <div className="relative z-10 space-y-4 sm:space-y-6">
+                {/* Small version of the icon for mobile only */}
+                <div className="mb-4 flex justify-center md:hidden">
+                  <motion.div
+                    className="flex h-16 w-16 items-center justify-center rounded-full bg-black/60 shadow-lg backdrop-blur"
+                    animate={{
+                      boxShadow: [
+                        "0 0 0 rgba(124, 58, 237, 0.3)",
+                        "0 0 20px rgba(124, 58, 237, 0.6)",
+                        "0 0 0 rgba(124, 58, 237, 0.3)",
+                      ],
+                    }}
+                    transition={{
+                      duration: 3,
+                      repeat: Infinity,
+                      ease: "easeInOut",
+                    }}
+                  >
+                    <div
+                      className="absolute inset-0 rounded-full bg-gradient-to-b from-white/10 to-transparent"
+                      style={{ height: "50%" }}
+                    ></div>
+                    <svg
+                      width="32"
+                      height="32"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="relative text-accent-400"
+                    >
+                      <path
+                        d="M12 16V8M8 12h8"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                      <path
+                        d="M12 21a9 9 0 100-18 9 9 0 000 18z"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
+                  </motion.div>
+                </div>
+
                 <motion.h2
-                  className="text-3xl font-bold leading-tight text-white md:text-4xl"
+                  className="text-center text-2xl font-bold leading-tight text-white sm:text-3xl md:text-left md:text-3xl lg:text-4xl"
                   initial={{ opacity: 0, y: 20 }}
                   animate={
                     isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }
@@ -270,7 +317,7 @@ export const CtaSection = () => {
                 </motion.h2>
 
                 <motion.p
-                  className="max-w-2xl text-lg text-neutral-100"
+                  className="text-center text-base text-neutral-100 sm:text-lg md:text-left"
                   initial={{ opacity: 0, y: 20 }}
                   animate={
                     isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }
@@ -281,7 +328,7 @@ export const CtaSection = () => {
                 </motion.p>
 
                 <motion.div
-                  className="pt-4"
+                  className="flex justify-center pt-2 sm:pt-4 md:justify-start"
                   initial={{ opacity: 0, y: 20 }}
                   animate={
                     isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }
@@ -291,11 +338,11 @@ export const CtaSection = () => {
                   <Button
                     href="/contact"
                     variant="gradient"
-                    size="lg"
+                    size="md"
                     glow
                     magnetic
                     magneticStrength={40}
-                    className="group relative overflow-hidden"
+                    className="sm:size-lg group relative overflow-hidden"
                   >
                     {/* Glass highlight on button */}
                     <span className="absolute inset-0 -z-10 opacity-0 transition-opacity duration-700 group-hover:opacity-100">
@@ -306,12 +353,12 @@ export const CtaSection = () => {
                     <span className="relative flex items-center">
                       {t("cta.button")}
                       <motion.svg
-                        width="20"
-                        height="20"
+                        width="16"
+                        height="16"
                         viewBox="0 0 24 24"
                         fill="none"
                         xmlns="http://www.w3.org/2000/svg"
-                        className="ml-2"
+                        className="ml-2 sm:h-5 sm:w-5"
                         animate={{ x: [0, 4, 0] }}
                         transition={{
                           duration: 1.5,

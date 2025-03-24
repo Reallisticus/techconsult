@@ -12,7 +12,17 @@ import { en } from "./translations/en";
 import { bg } from "./translations/bg";
 
 export type Language = "en" | "bg";
-export type TranslationKey = keyof typeof en & string;
+type NestedTranslationKeys<T> = {
+  [K in keyof T & string]: T[K] extends string
+    ? K
+    : T[K] extends any[]
+      ? never
+      : T[K] extends object
+        ? `${K}.${NestedTranslationKeys<T[K]>}`
+        : never;
+}[keyof T & string];
+
+export type TranslationKey = NestedTranslationKeys<typeof en>;
 export type Translations = typeof en;
 
 interface LanguageContextType {
@@ -20,6 +30,7 @@ interface LanguageContextType {
   setLanguage: (lang: Language) => void;
   t: (key: TranslationKey, params?: Record<string, string | number>) => string;
   isLoading: boolean;
+  getNestedTranslation: <T>(key: string) => T;
 }
 
 const translations: Record<Language, Translations> = {
@@ -88,28 +99,50 @@ export const LanguageProvider: React.FC<LanguageProviderProps> = ({
     key: TranslationKey,
     params?: Record<string, string | number>,
   ): string => {
-    try {
-      const translation = translations[language][key] || key;
+    // Cast to any so we can dynamically index by a dot-separated key.
+    const translationsForLang = translations[language] as any;
 
-      if (!params) return translation;
+    // First try a flat lookup.
+    let translation: unknown = translationsForLang[key];
 
-      // Handle interpolation for params like {{name}}
-      return Object.entries(params).reduce(
-        (result, [paramKey, paramValue]) =>
-          result.replace(
-            new RegExp(`{{${paramKey}}}`, "g"),
-            String(paramValue),
-          ),
-        translation,
-      );
-    } catch (error) {
-      console.error(`Translation error for key "${key}":`, error);
+    // If not found, perform a nested lookup.
+    if (typeof translation !== "string") {
+      translation = key
+        .split(".")
+        .reduce(
+          (acc, part) => (acc ? acc[part] : undefined),
+          translationsForLang,
+        );
+    }
+
+    if (typeof translation !== "string") {
+      console.error(`Translation for key "${key}" is not a string.`);
       return key;
     }
+
+    // Handle parameter interpolation.
+    if (!params) return translation;
+
+    return Object.entries(params).reduce(
+      (result, [paramKey, paramValue]) =>
+        result.replace(new RegExp(`{{${paramKey}}}`, "g"), String(paramValue)),
+      translation,
+    );
   };
 
+  function getNestedTranslation<T>(key: string): T {
+    return key
+      .split(".")
+      .reduce(
+        (acc, part) => (acc ? (acc as any)[part] : undefined),
+        translations[language],
+      ) as T;
+  }
+
   return (
-    <LanguageContext.Provider value={{ language, setLanguage, t, isLoading }}>
+    <LanguageContext.Provider
+      value={{ language, setLanguage, t, isLoading, getNestedTranslation }}
+    >
       {children}
     </LanguageContext.Provider>
   );

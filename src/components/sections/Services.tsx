@@ -282,10 +282,13 @@ export const ServicesSection = () => {
   };
 
   return (
-    <section ref={sectionRef} className="relative z-10 bg-transparent py-24">
+    <section
+      ref={sectionRef}
+      className="relative z-10 bg-transparent py-12 md:py-24"
+    >
       <div className="container mx-auto px-4">
         <ScrollReveal direction="up" threshold={0.1}>
-          <div className="mb-16 text-center">
+          <div className="mb-10 text-center md:mb-16">
             <motion.span
               className="font-mono uppercase tracking-wider text-accent-500"
               initial={{ opacity: 0, y: 20 }}
@@ -297,7 +300,7 @@ export const ServicesSection = () => {
             </motion.span>
 
             <motion.h2
-              className="mb-6 text-4xl font-bold md:text-5xl"
+              className="mb-4 text-3xl font-bold md:mb-6 md:text-4xl lg:text-5xl"
               initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.2 }}
@@ -307,7 +310,7 @@ export const ServicesSection = () => {
             </motion.h2>
 
             <motion.p
-              className="mx-auto max-w-2xl text-lg text-neutral-300"
+              className="mx-auto max-w-2xl text-base text-neutral-300 md:text-lg"
               initial={{ opacity: 0, y: 40 }}
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.3 }}
@@ -321,7 +324,7 @@ export const ServicesSection = () => {
         {/* Animated background elements */}
         <div className="absolute inset-0 -z-10 overflow-hidden">
           <motion.div
-            className="absolute left-10 top-20 h-64 w-64 rounded-full bg-primary-900/20 blur-3xl"
+            className="absolute left-0 top-10 h-40 w-40 rounded-full bg-primary-900/20 blur-3xl md:left-10 md:top-20 md:h-64 md:w-64"
             animate={{
               x: [0, 10, -10, 0],
               y: [0, -30, 30, 0],
@@ -333,7 +336,7 @@ export const ServicesSection = () => {
             }}
           />
           <motion.div
-            className="absolute bottom-40 right-20 h-72 w-72 rounded-full bg-accent-700/10 blur-3xl"
+            className="absolute bottom-20 right-0 h-40 w-40 rounded-full bg-accent-700/10 blur-3xl md:bottom-40 md:right-20 md:h-72 md:w-72"
             animate={{
               x: [0, -30, 30, 0],
               y: [0, 20, -20, 0],
@@ -348,18 +351,30 @@ export const ServicesSection = () => {
 
         <div
           ref={cardsRef}
-          className="relative grid grid-cols-1 gap-8 md:grid-cols-3 md:grid-rows-3"
-          style={{ gridAutoRows: "1fr" }}
+          className="relative grid grid-cols-1 gap-4 sm:grid-cols-2 md:gap-8 lg:grid-cols-3"
+          style={{ gridAutoRows: "minmax(min-content, 1fr)" }}
         >
           {reorderedServices.map((service, index) => {
             if (!service) {
-              return <div key={`service-${index}`} className="invisible" />;
+              return (
+                <div
+                  key={`service-${index}`}
+                  className="hidden md:invisible md:block"
+                />
+              );
             }
+
+            // Simply generate a URL-friendly slug from the displayed service name
+            const serviceSlug = service.name
+              .toLowerCase()
+              .replace(/\s+/g, "-") // Replace spaces with hyphens
+              .replace(/[^\w\-\u0400-\u04FF]+/g, ""); // Remove special characters but keep letters, numbers, hyphens and Cyrillic
 
             return (
               <Parallax key={`service-${index}`} speed={0.1} direction="up">
-                <motion.div
-                  className="service-card group relative h-full min-h-[300px] overflow-hidden rounded-xl bg-gradient-to-b from-neutral-900/80 to-neutral-950/80 backdrop-blur-sm"
+                <motion.a
+                  href={`/services/${serviceSlug}`}
+                  className="service-card group relative block h-full min-h-[250px] overflow-hidden rounded-xl bg-gradient-to-b from-neutral-900/80 to-neutral-950/80 backdrop-blur-sm md:min-h-[300px]"
                   onHoverStart={() => handleCardHover(index)}
                   onHoverEnd={() => handleCardHover(null)}
                   whileHover={{
@@ -371,9 +386,9 @@ export const ServicesSection = () => {
                   transition={{ duration: 0.6, delay: index * 0.1 }}
                   viewport={{ once: true, margin: "-50px" }}
                 >
-                  <div className="flex h-full flex-col p-8">
+                  <div className="flex h-full flex-col p-5 md:p-8">
                     <motion.div
-                      className="mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-primary-800/20"
+                      className="mb-3 flex h-10 w-10 items-center justify-center rounded-lg bg-primary-800/20 md:mb-4 md:h-12 md:w-12"
                       whileHover={{
                         rotate: 360,
                         scale: 1.1,
@@ -382,7 +397,7 @@ export const ServicesSection = () => {
                       transition={{ duration: 0.5 }}
                     >
                       <motion.div
-                        className="text-primary-400"
+                        className="text-xl text-primary-400 md:text-2xl"
                         animate={{
                           scale: activeIndex === index ? [1, 1.1, 1] : 1,
                         }}
@@ -397,7 +412,7 @@ export const ServicesSection = () => {
                     </motion.div>
 
                     <motion.h3
-                      className="service-title mb-2 text-2xl font-bold transition-colors group-hover:text-accent-500"
+                      className="service-title mb-2 text-xl font-bold transition-colors group-hover:text-accent-500 md:text-2xl"
                       initial={{ opacity: 0, x: -20 }}
                       whileInView={{ opacity: 1, x: 0 }}
                       transition={{ duration: 0.5, delay: 0.2 + index * 0.1 }}
@@ -407,7 +422,7 @@ export const ServicesSection = () => {
                     </motion.h3>
 
                     <motion.p
-                      className="mb-6 flex-grow text-neutral-400"
+                      className="mb-4 flex-grow text-sm text-neutral-400 md:mb-6 md:text-base"
                       initial={{ opacity: 0 }}
                       whileInView={{ opacity: 1 }}
                       transition={{ duration: 0.5, delay: 0.3 + index * 0.1 }}
@@ -419,12 +434,12 @@ export const ServicesSection = () => {
                     <Button
                       variant="ghost"
                       size="sm"
-                      className="flex items-center p-0 text-primary-400 transition-colors group-hover:text-accent-500"
+                      className="flex cursor-pointer items-center p-0 text-sm text-primary-400 transition-colors group-hover:text-accent-500 md:text-base"
                     >
                       {t("services.learnMore")}
                       <motion.svg
-                        width="20"
-                        height="20"
+                        width="16"
+                        height="16"
                         viewBox="0 0 24 24"
                         fill="none"
                         xmlns="http://www.w3.org/2000/svg"
@@ -455,7 +470,7 @@ export const ServicesSection = () => {
 
                   {/* Animated corner accents */}
                   <motion.div
-                    className="absolute left-0 top-0 h-4 w-4 rounded-tl-xl border-l border-t border-transparent transition-all duration-300 group-hover:border-accent-500"
+                    className="absolute left-0 top-0 h-3 w-3 rounded-tl-xl border-l border-t border-transparent transition-all duration-300 group-hover:border-accent-500 md:h-4 md:w-4"
                     animate={
                       activeIndex === index
                         ? {
@@ -470,7 +485,7 @@ export const ServicesSection = () => {
                     transition={{ duration: 2, repeat: Infinity }}
                   />
                   <motion.div
-                    className="absolute right-0 top-0 h-4 w-4 rounded-tr-xl border-r border-t border-transparent transition-all duration-300 group-hover:border-accent-500"
+                    className="absolute right-0 top-0 h-3 w-3 rounded-tr-xl border-r border-t border-transparent transition-all duration-300 group-hover:border-accent-500 md:h-4 md:w-4"
                     animate={
                       activeIndex === index
                         ? {
@@ -485,7 +500,7 @@ export const ServicesSection = () => {
                     transition={{ duration: 2, repeat: Infinity, delay: 0.5 }}
                   />
                   <motion.div
-                    className="absolute bottom-0 left-0 h-4 w-4 rounded-bl-xl border-b border-l border-transparent transition-all duration-300 group-hover:border-accent-500"
+                    className="absolute bottom-0 left-0 h-3 w-3 rounded-bl-xl border-b border-l border-transparent transition-all duration-300 group-hover:border-accent-500 md:h-4 md:w-4"
                     animate={
                       activeIndex === index
                         ? {
@@ -500,7 +515,7 @@ export const ServicesSection = () => {
                     transition={{ duration: 2, repeat: Infinity, delay: 1 }}
                   />
                   <motion.div
-                    className="absolute bottom-0 right-0 h-4 w-4 rounded-br-xl border-b border-r border-transparent transition-all duration-300 group-hover:border-accent-500"
+                    className="absolute bottom-0 right-0 h-3 w-3 rounded-br-xl border-b border-r border-transparent transition-all duration-300 group-hover:border-accent-500 md:h-4 md:w-4"
                     animate={
                       activeIndex === index
                         ? {
@@ -535,7 +550,7 @@ export const ServicesSection = () => {
                       ease: "linear",
                     }}
                   />
-                </motion.div>
+                </motion.a>
               </Parallax>
             );
           })}

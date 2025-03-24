@@ -4,27 +4,44 @@ import { useLanguage } from "../../i18n/context";
 import { ScrollReveal } from "../../provider/SmoothScrollProvider";
 import { Button } from "../ui/button";
 
+interface Contact {
+  "preview.title": string;
+  "preview.description": string;
+  "preview.locationLabel": string;
+  "preview.phoneLabel": string;
+  "preview.emailLabel": string;
+  "preview.scheduleButton": string;
+  "preview.mapLabel": string;
+  "contact.location": string;
+  "contact.email": string;
+  "contact.phone": string;
+}
+
 export const ContactPreview = () => {
-  const { t } = useLanguage();
+  const { t, getNestedTranslation } = useLanguage();
   const [contactRef, inView] = useAnimationInView("slideUp", {
     threshold: 0.1,
   });
 
+  const contactData: Contact = getNestedTranslation<Contact>("contact");
+
   return (
-    <section ref={contactRef} className="bg-transparent py-24">
+    <section
+      ref={contactRef}
+      className="bg-transparent py-12 md:py-16 lg:py-24"
+    >
       <div className="container mx-auto px-4">
-        <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
+        <div className="grid grid-cols-1 gap-6 md:gap-8 lg:grid-cols-2">
           <ScrollReveal direction="left" threshold={0.1}>
-            <div className="rounded-xl bg-neutral-900/30 p-8 backdrop-blur-sm">
-              <h2 className="mb-6 text-3xl font-bold md:text-4xl">
-                Get In Touch
+            <div className="rounded-xl bg-neutral-900/30 p-6 backdrop-blur-sm md:p-8">
+              <h2 className="mb-4 text-2xl font-bold md:mb-6 md:text-3xl lg:text-4xl">
+                {contactData?.["preview.title"]}
               </h2>
-              <p className="mb-8 text-lg text-neutral-300">
-                Ready to discuss how our technology consulting services can
-                transform your business? Our team is here to help.
+              <p className="mb-6 text-base text-neutral-300 md:mb-8 md:text-lg">
+                {contactData?.["preview.description"]}
               </p>
 
-              <div className="space-y-6">
+              <div className="space-y-4 md:space-y-6">
                 <div className="flex items-start">
                   <div className="mr-4 flex h-10 w-10 items-center justify-center rounded-full bg-accent-500/10">
                     <svg
@@ -49,8 +66,12 @@ export const ContactPreview = () => {
                     </svg>
                   </div>
                   <div>
-                    <h3 className="mb-1 font-semibold text-white">Location</h3>
-                    <p className="text-neutral-300">{t("contact.location")}</p>
+                    <h3 className="mb-1 font-semibold text-white">
+                      {contactData?.["preview.locationLabel"]}
+                    </h3>
+                    <p className="text-neutral-300">
+                      {contactData?.["contact.location"]}
+                    </p>
                   </div>
                 </div>
 
@@ -71,8 +92,12 @@ export const ContactPreview = () => {
                     </svg>
                   </div>
                   <div>
-                    <h3 className="mb-1 font-semibold text-white">Email</h3>
-                    <p className="text-neutral-300">{t("contact.email")}</p>
+                    <h3 className="mb-1 font-semibold text-white">
+                      {contactData?.["preview.emailLabel"]}
+                    </h3>
+                    <p className="text-neutral-300">
+                      {contactData?.["contact.email"]}
+                    </p>
                   </div>
                 </div>
 
@@ -93,13 +118,17 @@ export const ContactPreview = () => {
                     </svg>
                   </div>
                   <div>
-                    <h3 className="mb-1 font-semibold text-white">Phone</h3>
-                    <p className="text-neutral-300">{t("contact.phone")}</p>
+                    <h3 className="mb-1 font-semibold text-white">
+                      {contactData?.["preview.phoneLabel"]}
+                    </h3>
+                    <p className="text-neutral-300">
+                      {contactData?.["contact.phone"]}
+                    </p>
                   </div>
                 </div>
               </div>
 
-              <div className="mt-8">
+              <div className="mt-6 md:mt-8">
                 <Button
                   href="/contact"
                   variant="primary"
@@ -107,7 +136,7 @@ export const ContactPreview = () => {
                   glow
                   magnetic
                 >
-                  Schedule a Consultation
+                  {contactData?.["preview.scheduleButton"]}
                 </Button>
               </div>
             </div>
@@ -146,7 +175,7 @@ export const ContactPreview = () => {
                 {/* Location label */}
                 <div className="absolute left-1/2 top-1/3 -translate-x-1/2 -translate-y-1/2 transform text-center">
                   <div className="rounded-full bg-accent-500 px-3 py-1 text-sm font-medium text-white">
-                    Sofia, Bulgaria
+                    {contactData?.["preview.mapLabel"]}
                   </div>
                 </div>
               </div>

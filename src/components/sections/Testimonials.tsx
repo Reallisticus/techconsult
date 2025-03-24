@@ -24,6 +24,12 @@ interface Testimonial {
   image: string;
 }
 
+interface Section {
+  "section.subtitle": string;
+  "section.title": string;
+  testimonials: Testimonial[];
+}
+
 // 3D Background Animation Component
 const AnimatedTorus: React.FC = () => {
   const meshRef = useRef<THREE.Mesh>(null);
@@ -68,7 +74,7 @@ const AnimatedTorus: React.FC = () => {
 
 // Main Testimonials Component
 export const Testimonials: React.FC = () => {
-  const { t } = useLanguage();
+  const { t, getNestedTranslation } = useLanguage();
   const sectionRef = useRef<HTMLElement>(null);
   const sliderRef = useRef<HTMLDivElement>(null);
   const { lenis, scroll } = useSmoothScroll();
@@ -81,29 +87,18 @@ export const Testimonials: React.FC = () => {
   const slideControls = useAnimation();
 
   // Testimonials data
-  const testimonials: Testimonial[] = [
-    {
-      quote:
-        "TechConsult.BG transformed our business with their strategic vision and technical expertise. They didn't just implement technology - they revolutionized our entire approach.",
-      author: "Maria Ivanova",
-      position: "CTO, Global Finance Ltd.",
-      image: "/images/testimonial1.webp",
-    },
-    {
-      quote:
-        "Working with the team at TechConsult.BG was a game-changer for our digital transformation. Their ability to understand our unique business challenges was exceptional.",
-      author: "Stefan Petrov",
-      position: "CEO, NexGen Retail",
-      image: "/images/testimonial2.webp",
-    },
-    {
-      quote:
-        "From strategy to implementation, the TechConsult.BG team delivered beyond our expectations. The result is a future-proof technology infrastructure that scales with our business.",
-      author: "Elena Dimitrova",
-      position: "Director of Operations, MedTech Solutions",
-      image: "/images/testimonial3.webp",
-    },
-  ];
+  const testimonials: Testimonial[] = getNestedTranslation<Testimonial[]>(
+    "testimonials.testimonials",
+  );
+
+  const sectionData: Section = getNestedTranslation<Section>("testimonials");
+
+  // Add image paths to testimonials
+  const testimonialsWithImages =
+    testimonials?.map((testimonial, index) => ({
+      ...testimonial,
+      image: `/images/testimonials/testimonial${index + 1}.webp`,
+    })) || [];
 
   // Initialize GSAP ScrollTrigger
   useIsomorphicLayoutEffect(() => {
@@ -140,19 +135,24 @@ export const Testimonials: React.FC = () => {
   // Handle automatic slideshow
   useEffect(() => {
     const interval = setInterval(() => {
-      if (!isAnimating) {
+      if (!isAnimating && testimonialsWithImages.length > 0) {
         goToNextSlide();
       }
     }, 6000);
 
     return () => clearInterval(interval);
-  }, [activeIndex, isAnimating]);
+  }, [activeIndex, isAnimating, testimonialsWithImages.length]);
 
   // Navigation Functions
   const goToSlide = useCallback(
     (index: number) => {
-      if (isAnimating || index === activeIndex) return;
-      if (index < 0 || index >= testimonials.length) return;
+      if (
+        isAnimating ||
+        index === activeIndex ||
+        testimonialsWithImages.length === 0
+      )
+        return;
+      if (index < 0 || index >= testimonialsWithImages.length) return;
 
       const newDirection = index > activeIndex ? 1 : -1;
       setDirection(newDirection);
@@ -170,19 +170,22 @@ export const Testimonials: React.FC = () => {
           slideControls.set({ x: 0 });
         });
     },
-    [activeIndex, isAnimating, slideControls, testimonials.length],
+    [activeIndex, isAnimating, slideControls, testimonialsWithImages.length],
   );
 
   const goToNextSlide = useCallback(() => {
-    const nextIndex = (activeIndex + 1) % testimonials.length;
+    if (testimonialsWithImages.length === 0) return;
+    const nextIndex = (activeIndex + 1) % testimonialsWithImages.length;
     goToSlide(nextIndex);
-  }, [activeIndex, goToSlide, testimonials.length]);
+  }, [activeIndex, goToSlide, testimonialsWithImages.length]);
 
   const goToPrevSlide = useCallback(() => {
+    if (testimonialsWithImages.length === 0) return;
     const prevIndex =
-      (activeIndex - 1 + testimonials.length) % testimonials.length;
+      (activeIndex - 1 + testimonialsWithImages.length) %
+      testimonialsWithImages.length;
     goToSlide(prevIndex);
-  }, [activeIndex, goToSlide, testimonials.length]);
+  }, [activeIndex, goToSlide, testimonialsWithImages.length]);
 
   // Quote animations
   const quoteVariants = {
@@ -221,16 +224,20 @@ export const Testimonials: React.FC = () => {
     },
   };
 
+  if (!testimonialsWithImages || testimonialsWithImages.length === 0) {
+    return null;
+  }
+
   return (
     <section ref={sectionRef} className="relative overflow-hidden py-24">
       <div className="container mx-auto px-4">
         <ScrollReveal direction="up" threshold={0.1} once>
           <div className="testimonial-header mb-16 text-center">
             <span className="font-mono uppercase tracking-wider text-accent-500">
-              Client Feedback
+              {sectionData?.["section.subtitle"]}
             </span>
             <h2 className="mb-6 text-4xl font-bold md:text-5xl">
-              What Our Clients Say
+              {sectionData?.["section.title"]}
             </h2>
           </div>
         </ScrollReveal>
@@ -283,7 +290,7 @@ export const Testimonials: React.FC = () => {
                 className="relative"
               >
                 <p className="relative z-10 mb-8 text-xl italic text-white md:text-2xl">
-                  {testimonials[activeIndex]?.quote || ""}
+                  {testimonialsWithImages[activeIndex]?.quote || ""}
                 </p>
 
                 <div className="flex items-center">
@@ -296,7 +303,7 @@ export const Testimonials: React.FC = () => {
                     <div
                       className="h-full w-full bg-cover bg-center"
                       style={{
-                        backgroundImage: `url(${testimonials[activeIndex]?.image ?? ""})`,
+                        backgroundImage: `url(${testimonialsWithImages[activeIndex]?.image ?? ""})`,
                       }}
                     />
                   </motion.div>
@@ -307,10 +314,10 @@ export const Testimonials: React.FC = () => {
                     transition={{ delay: 0.3 }}
                   >
                     <p className="font-bold text-white">
-                      {testimonials[activeIndex]?.author || ""}
+                      {testimonialsWithImages[activeIndex]?.author || ""}
                     </p>
                     <p className="text-sm text-neutral-400">
-                      {testimonials[activeIndex]?.position || ""}
+                      {testimonialsWithImages[activeIndex]?.position || ""}
                     </p>
                   </motion.div>
                 </div>
@@ -332,81 +339,6 @@ export const Testimonials: React.FC = () => {
                 key={activeIndex} // Reset animation when slide changes
               />
             </div>
-          </div>
-
-          {/* Navigation arrows with responsive positioning */}
-          <div className="absolute left-0 right-0 top-1/2 flex -translate-y-1/2 justify-between px-4 md:-mx-12 md:px-0">
-            <motion.button
-              className={cn(
-                "flex h-10 w-10 items-center justify-center rounded-full bg-accent-500 text-white transition-opacity duration-300 md:h-12 md:w-12",
-                activeIndex === 0
-                  ? "opacity-50"
-                  : "opacity-100 hover:bg-accent-600",
-              )}
-              onClick={goToPrevSlide}
-              disabled={isAnimating || activeIndex === 0}
-              aria-label="Previous testimonial"
-              whileTap={{ scale: 0.9 }}
-              whileHover={
-                activeIndex !== 0
-                  ? {
-                      scale: 1.1,
-                      boxShadow: "0 0 15px rgba(124, 58, 237, 0.5)",
-                    }
-                  : {}
-              }
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                className="h-5 w-5 md:h-6 md:w-6"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M15 19l-7-7 7-7"
-                />
-              </svg>
-            </motion.button>
-
-            <motion.button
-              className={cn(
-                "flex h-10 w-10 items-center justify-center rounded-full bg-accent-500 text-white transition-opacity duration-300 md:h-12 md:w-12",
-                activeIndex === testimonials.length - 1
-                  ? "opacity-50"
-                  : "opacity-100 hover:bg-accent-600",
-              )}
-              onClick={goToNextSlide}
-              disabled={isAnimating || activeIndex === testimonials.length - 1}
-              aria-label="Next testimonial"
-              whileTap={{ scale: 0.9 }}
-              whileHover={
-                activeIndex !== testimonials.length - 1
-                  ? {
-                      scale: 1.1,
-                      boxShadow: "0 0 15px rgba(124, 58, 237, 0.5)",
-                    }
-                  : {}
-              }
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                className="h-5 w-5 md:h-6 md:w-6"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M9 5l7 7-7 7"
-                />
-              </svg>
-            </motion.button>
           </div>
 
           {/* Navigation dots */}

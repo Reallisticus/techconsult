@@ -1,4 +1,8 @@
 import { caseStudiesEN } from "./case-studies/en";
+import { contactEN } from "./contact/en";
+import { teamEN } from "./team/en";
+import { techStackEN } from "./tech-stack/en";
+import { testimonialsEN } from "./testimonials/en";
 
 // src/i18n/translations/en.ts
 export const en = {
@@ -61,6 +65,16 @@ export const en = {
     "Let's discuss how our strategic IT consulting services can help you overcome challenges and seize opportunities.",
   "cta.button": "Schedule a Consultation",
 
+  caseStudies: caseStudiesEN,
+
+  testimonials: testimonialsEN,
+
+  team: teamEN,
+
+  techStack: techStackEN,
+
+  contact: contactEN,
+
   // Footer
   "footer.quickLinks": "Quick Links",
   "footer.services": "Services",
@@ -68,11 +82,6 @@ export const en = {
   "footer.rights": "© {{year}} TechConsult.BG. All rights reserved.",
   "footer.privacyPolicy": "Privacy Policy",
   "footer.termsOfService": "Terms of Service",
-
-  // Contact Info
-  "contact.location": "Sofia, Bulgaria",
-  "contact.email": "contact@techconsult.bg",
-  "contact.phone": "+359 88 888 8888",
 
   // Error Messages
   "error.generic": "Something went wrong. Please try again.",
