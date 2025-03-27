@@ -72,7 +72,7 @@ export default function RootLayout({
       </head>
       <body className="overflow-x-hidden text-white">
         {/* Loading overlay - will automatically disappear after assets load */}
-        <LoadingOverlay minDuration={2500} />
+        <LoadingOverlay minDuration={1000} />
 
         {/* Application providers, correctly nested for dependencies */}
         <LanguageProvider defaultLanguage="en">

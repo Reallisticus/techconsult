@@ -1,6 +1,7 @@
 // src/i18n/translations/bg.ts
 import { caseStudiesBG } from "./case-studies/bg";
 import { contactBG } from "./contact/bg";
+import { servicesBG } from "./services/bg";
 import { teamBG } from "./team/bg";
 import { techStackBG } from "./tech-stack/bg";
 import { testimonialsBG } from "./testimonials/bg";
@@ -71,6 +72,7 @@ export const bg = {
   team: teamBG,
   techStack: techStackBG,
   contact: contactBG,
+  services: servicesBG,
 
   // Footer
   "footer.quickLinks": "Бързи връзки",

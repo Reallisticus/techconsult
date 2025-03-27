@@ -3,7 +3,7 @@
 import { useRef } from "react";
 import { motion, useInView } from "framer-motion";
 import { useLanguage } from "~/i18n/context";
-import { Button } from "../ui/button";
+import { Button } from "../../ui/button";
 
 export const CtaSection = () => {
   const { t } = useLanguage();

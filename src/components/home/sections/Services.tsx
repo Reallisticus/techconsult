@@ -1,9 +1,9 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { Button } from "../ui/button";
+import { Button } from "../../ui/button";
 import { useLanguage } from "~/i18n/context";
-import { ScrollReveal, Parallax } from "../../provider/SmoothScrollProvider";
+import { ScrollReveal, Parallax } from "../../../provider/SmoothScrollProvider";
 import { motion } from "framer-motion";
 
 export const ServicesSection = () => {

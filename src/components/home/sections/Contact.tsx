@@ -1,8 +1,8 @@
-import { useAnimationInView } from "../../hooks/useAnimation";
-import { useLanguage } from "../../i18n/context";
-import { ScrollReveal } from "../../provider/SmoothScrollProvider";
-import { Button } from "../ui/button";
-import GlobeContainer from "../ui/globe-container";
+import { useAnimationInView } from "../../../hooks/useAnimation";
+import { useLanguage } from "../../../i18n/context";
+import { ScrollReveal } from "../../../provider/SmoothScrollProvider";
+import { Button } from "../../ui/button";
+import GlobeContainer from "../../ui/globe-container";
 
 interface Contact {
   "preview.title": string;

@@ -1,9 +1,9 @@
 import { motion } from "framer-motion";
-import { useAnimationInView } from "../../hooks/useAnimation";
-import { useLanguage } from "../../i18n/context";
-import { ScrollReveal } from "../../provider/SmoothScrollProvider";
-import { Button } from "../ui/button";
-import { CaseStudyTranslations } from "../../i18n/translations/case-studies";
+import { useAnimationInView } from "../../../hooks/useAnimation";
+import { useLanguage } from "../../../i18n/context";
+import { ScrollReveal } from "../../../provider/SmoothScrollProvider";
+import { Button } from "../../ui/button";
+import { CaseStudyTranslations } from "../../../i18n/translations/case-studies";
 import Link from "next/link";
 
 export const FeaturedCaseStudies = () => {

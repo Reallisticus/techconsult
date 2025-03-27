@@ -8,7 +8,7 @@ import React, {
 } from "react";
 import { Canvas } from "@react-three/fiber";
 import { Html, useProgress } from "@react-three/drei";
-import InteractiveGlobe from "../utils/InteractiveGlobe";
+import InteractiveGlobe from "../home/utils/InteractiveGlobe";
 
 interface GlobeContainerProps {
   markerLabel?: string;

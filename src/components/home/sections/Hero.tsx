@@ -1,11 +1,11 @@
 "use client";
 
 import { useRef, useState, useEffect } from "react";
-import { Button } from "../ui/button";
+import { Button } from "../../ui/button";
 import { useLanguage } from "~/i18n/context";
 import { getDisplayFontClass } from "~/lib/fonts";
 import { cn } from "~/lib/utils";
-import { useSmoothScroll } from "../../provider/SmoothScrollProvider";
+import { useSmoothScroll } from "../../../provider/SmoothScrollProvider";
 import { motion, useMotionValue, useSpring, useTransform } from "framer-motion";
 import { useIsomorphicLayoutEffect } from "~/hooks/useIsomorphicLayout";
 

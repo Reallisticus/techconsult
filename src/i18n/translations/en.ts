@@ -1,5 +1,6 @@
 import { caseStudiesEN } from "./case-studies/en";
 import { contactEN } from "./contact/en";
+import { servicesEN } from "./services/en";
 import { teamEN } from "./team/en";
 import { techStackEN } from "./tech-stack/en";
 import { testimonialsEN } from "./testimonials/en";
@@ -74,6 +75,8 @@ export const en = {
   techStack: techStackEN,
 
   contact: contactEN,
+
+  services: servicesEN,
 
   // Footer
   "footer.quickLinks": "Quick Links",

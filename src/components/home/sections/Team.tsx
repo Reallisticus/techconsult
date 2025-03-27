@@ -1,9 +1,9 @@
 "use client";
 import { motion } from "framer-motion";
-import { useAnimationInView } from "../../hooks/useAnimation";
-import { useLanguage } from "../../i18n/context";
-import { ScrollReveal } from "../../provider/SmoothScrollProvider";
-import { Button } from "../ui/button";
+import { useAnimationInView } from "../../../hooks/useAnimation";
+import { useLanguage } from "../../../i18n/context";
+import { ScrollReveal } from "../../../provider/SmoothScrollProvider";
+import { Button } from "../../ui/button";
 
 interface TeamMember {
   name: string;

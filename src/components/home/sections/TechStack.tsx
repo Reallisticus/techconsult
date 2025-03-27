@@ -2,9 +2,9 @@
 import { useFrame, Canvas } from "@react-three/fiber";
 import { motion } from "framer-motion";
 import { useRef, useState, useEffect, useMemo } from "react";
-import { useAnimationInView } from "../../hooks/useAnimation";
-import { useLanguage } from "../../i18n/context";
-import { ScrollReveal } from "../../provider/SmoothScrollProvider";
+import { useAnimationInView } from "../../../hooks/useAnimation";
+import { useLanguage } from "../../../i18n/context";
+import { ScrollReveal } from "../../../provider/SmoothScrollProvider";
 import * as THREE from "three";
 
 interface TechCategory {
