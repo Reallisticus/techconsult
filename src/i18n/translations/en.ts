@@ -82,6 +82,9 @@ export const en = {
   "footer.rights": "© {{year}} TechConsult.BG. All rights reserved.",
   "footer.privacyPolicy": "Privacy Policy",
   "footer.termsOfService": "Terms of Service",
+  "footer.location": "Sofia, Bulgaria",
+  "footer.email": "contact@techconsult.bg",
+  "footer.phone": "+359 88 888 8888",
 
   // Error Messages
   "error.generic": "Something went wrong. Please try again.",

@@ -1,8 +1,8 @@
-import { Canvas } from "@react-three/fiber";
 import { useAnimationInView } from "../../hooks/useAnimation";
 import { useLanguage } from "../../i18n/context";
 import { ScrollReveal } from "../../provider/SmoothScrollProvider";
 import { Button } from "../ui/button";
+import GlobeContainer from "../ui/globe-container";
 
 interface Contact {
   "preview.title": string;
@@ -143,42 +143,13 @@ export const ContactPreview = () => {
           </ScrollReveal>
 
           <ScrollReveal direction="right" threshold={0.1}>
-            <div className="overflow-hidden rounded-xl">
-              {/* Interactive map with ThreeJS globe */}
-              <div className="relative aspect-square h-full w-full">
-                <Canvas camera={{ position: [0, 0, 2], fov: 60 }}>
-                  <ambientLight intensity={0.3} />
-                  <pointLight position={[10, 10, 10]} intensity={0.8} />
-
-                  {/* Simple Earth globe */}
-                  <mesh>
-                    <sphereGeometry args={[1, 32, 32]} />
-                    <meshStandardMaterial
-                      color="#2563EB"
-                      wireframe={true}
-                      emissive="#2563EB"
-                      emissiveIntensity={0.2}
-                    />
-                  </mesh>
-
-                  {/* Sofia location marker */}
-                  <mesh position={[0.7, 0.4, 0.9]}>
-                    <sphereGeometry args={[0.03, 16, 16]} />
-                    <meshStandardMaterial
-                      color="#7C3AED"
-                      emissive="#7C3AED"
-                      emissiveIntensity={1}
-                    />
-                  </mesh>
-                </Canvas>
-
-                {/* Location label */}
-                <div className="absolute left-1/2 top-1/3 -translate-x-1/2 -translate-y-1/2 transform text-center">
-                  <div className="rounded-full bg-accent-500 px-3 py-1 text-sm font-medium text-white">
-                    {contactData?.["preview.mapLabel"]}
-                  </div>
-                </div>
-              </div>
+            <div className="rounded-xl">
+              {/* Interactive globe component replaces the original implementation */}
+              <GlobeContainer
+                markerLabel={contactData?.["preview.mapLabel"]}
+                globeSize={2}
+                labelSize={0.8}
+              />
             </div>
           </ScrollReveal>
         </div>

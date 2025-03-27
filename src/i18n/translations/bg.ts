@@ -81,9 +81,9 @@ export const bg = {
   "footer.termsOfService": "Общи условия",
 
   // Contact Info
-  "contact.location": "София, България",
-  "contact.email": "contact@techconsult.bg",
-  "contact.phone": "+359 88 888 8888",
+  "footer.location": "София, България",
+  "footer.email": "contact@techconsult.bg",
+  "footer.phone": "+359 88 888 8888",
 
   // Error Messages
   "error.generic": "Възникна грешка. Моля, опитайте отново.",
