@@ -6,7 +6,7 @@ import { useLanguage } from "~/i18n/context";
 import { ScrollReveal } from "~/provider/SmoothScrollProvider";
 
 export const ServiceProcess = () => {
-  const { t, getNestedTranslation } = useLanguage();
+  const { getNestedTranslation } = useLanguage();
   const sectionRef = useRef<HTMLDivElement>(null);
 
   // Get process data from translations
@@ -49,19 +49,19 @@ export const ServiceProcess = () => {
           {/* Timeline connector line */}
           <div className="absolute left-4 top-0 h-full w-px bg-accent-500/30 md:left-1/2 md:-ml-px" />
 
-          {/* Step 1: Discover */}
-          <div className="relative mb-12 md:mb-24 md:text-right">
+          {/* Step 1: Discover - Now LEFT aligned */}
+          <div className="relative mb-12 md:mb-24">
             <ScrollReveal direction="left" threshold={0.1} delay={0}>
-              <div className="flex items-center md:justify-end">
-                <div className="relative flex h-8 w-8 items-center justify-center rounded-full bg-accent-500 text-xs font-bold text-white md:order-last md:ml-6">
+              <div className="flex items-center">
+                <div className="relative mr-6 flex h-8 w-8 items-center justify-center rounded-full bg-secondary-500 text-xs font-bold text-white">
                   1
-                  <div className="absolute right-full top-1/2 h-px w-6 bg-accent-500/50" />
+                  <div className="absolute left-full top-1/2 h-px w-6 bg-secondary-500/50" />
                 </div>
                 <h3 className="text-xl font-bold text-white md:text-2xl">
                   {processData.discover.title}
                 </h3>
               </div>
-              <div className="mt-3 md:ml-auto md:mr-14 md:max-w-lg">
+              <div className="mt-3 md:ml-14 md:max-w-lg">
                 <p className="text-neutral-300">
                   {processData.discover.description}
                 </p>
@@ -81,23 +81,23 @@ export const ServiceProcess = () => {
                 delay: 0,
               }}
             >
-              <div className="shadow-glow h-1 w-1 rounded-full bg-accent-400" />
+              <div className="shadow-glow h-1 w-1 rounded-full bg-secondary-400" />
             </motion.div>
           </div>
 
-          {/* Step 2: Analyze */}
-          <div className="relative mb-12 md:mb-24">
+          {/* Step 2: Analyze - Now RIGHT aligned */}
+          <div className="relative mb-12 md:mb-24 md:text-right">
             <ScrollReveal direction="right" threshold={0.1} delay={0.1}>
-              <div className="flex items-center">
-                <div className="relative mr-6 flex h-8 w-8 items-center justify-center rounded-full bg-accent-500 text-xs font-bold text-white">
+              <div className="flex items-center md:justify-end">
+                <div className="relative flex h-8 w-8 items-center justify-center rounded-full bg-accent-500 text-xs font-bold text-white md:order-last md:ml-6">
                   2
-                  <div className="absolute left-full top-1/2 h-px w-6 bg-accent-500/50" />
+                  <div className="absolute right-full top-1/2 h-px w-6 bg-accent-500/50" />
                 </div>
                 <h3 className="text-xl font-bold text-white md:text-2xl">
                   {processData.analyze.title}
                 </h3>
               </div>
-              <div className="mt-3 md:ml-14 md:max-w-lg">
+              <div className="mt-3 md:ml-auto md:mr-14 md:max-w-lg">
                 <p className="text-neutral-300">
                   {processData.analyze.description}
                 </p>
@@ -121,19 +121,19 @@ export const ServiceProcess = () => {
             </motion.div>
           </div>
 
-          {/* Step 3: Strategize */}
-          <div className="relative mb-12 md:mb-24 md:text-right">
+          {/* Step 3: Strategize - Now LEFT aligned */}
+          <div className="relative mb-12 md:mb-24">
             <ScrollReveal direction="left" threshold={0.1} delay={0.2}>
-              <div className="flex items-center md:justify-end">
-                <div className="relative flex h-8 w-8 items-center justify-center rounded-full bg-accent-500 text-xs font-bold text-white md:order-last md:ml-6">
+              <div className="flex items-center">
+                <div className="relative mr-6 flex h-8 w-8 items-center justify-center rounded-full bg-secondary-500 text-xs font-bold text-white">
                   3
-                  <div className="absolute right-full top-1/2 h-px w-6 bg-accent-500/50" />
+                  <div className="absolute left-full top-1/2 h-px w-6 bg-secondary-500/50" />
                 </div>
                 <h3 className="text-xl font-bold text-white md:text-2xl">
                   {processData.strategize.title}
                 </h3>
               </div>
-              <div className="mt-3 md:ml-auto md:mr-14 md:max-w-lg">
+              <div className="mt-3 md:ml-14 md:max-w-lg">
                 <p className="text-neutral-300">
                   {processData.strategize.description}
                 </p>
@@ -153,23 +153,23 @@ export const ServiceProcess = () => {
                 delay: 1.2,
               }}
             >
-              <div className="shadow-glow h-1 w-1 rounded-full bg-accent-400" />
+              <div className="shadow-glow h-1 w-1 rounded-full bg-secondary-400" />
             </motion.div>
           </div>
 
-          {/* Step 4: Implement */}
-          <div className="relative mb-12 md:mb-24">
+          {/* Step 4: Implement - Now RIGHT aligned */}
+          <div className="relative mb-12 md:mb-24 md:text-right">
             <ScrollReveal direction="right" threshold={0.1} delay={0.3}>
-              <div className="flex items-center">
-                <div className="relative mr-6 flex h-8 w-8 items-center justify-center rounded-full bg-accent-500 text-xs font-bold text-white">
+              <div className="flex items-center md:justify-end">
+                <div className="relative flex h-8 w-8 items-center justify-center rounded-full bg-accent-500 text-xs font-bold text-white md:order-last md:ml-6">
                   4
-                  <div className="absolute left-full top-1/2 h-px w-6 bg-accent-500/50" />
+                  <div className="absolute right-full top-1/2 h-px w-6 bg-accent-500/50" />
                 </div>
                 <h3 className="text-xl font-bold text-white md:text-2xl">
                   {processData.implement.title}
                 </h3>
               </div>
-              <div className="mt-3 md:ml-14 md:max-w-lg">
+              <div className="mt-3 md:ml-auto md:mr-14 md:max-w-lg">
                 <p className="text-neutral-300">
                   {processData.implement.description}
                 </p>
@@ -193,19 +193,19 @@ export const ServiceProcess = () => {
             </motion.div>
           </div>
 
-          {/* Step 5: Optimize */}
-          <div className="relative mb-12 md:mb-24 md:text-right">
+          {/* Step 5: Optimize - Now LEFT aligned */}
+          <div className="relative mb-12 md:mb-24">
             <ScrollReveal direction="left" threshold={0.1} delay={0.4}>
-              <div className="flex items-center md:justify-end">
-                <div className="relative flex h-8 w-8 items-center justify-center rounded-full bg-accent-500 text-xs font-bold text-white md:order-last md:ml-6">
+              <div className="flex items-center">
+                <div className="relative mr-6 flex h-8 w-8 items-center justify-center rounded-full bg-secondary-500 text-xs font-bold text-white">
                   5
-                  <div className="absolute right-full top-1/2 h-px w-6 bg-accent-500/50" />
+                  <div className="absolute left-full top-1/2 h-px w-6 bg-secondary-500/50" />
                 </div>
                 <h3 className="text-xl font-bold text-white md:text-2xl">
                   {processData.optimize.title}
                 </h3>
               </div>
-              <div className="mt-3 md:ml-auto md:mr-14 md:max-w-lg">
+              <div className="mt-3 md:ml-14 md:max-w-lg">
                 <p className="text-neutral-300">
                   {processData.optimize.description}
                 </p>
@@ -225,7 +225,7 @@ export const ServiceProcess = () => {
                 delay: 2.4,
               }}
             >
-              <div className="shadow-glow h-1 w-1 rounded-full bg-accent-400" />
+              <div className="shadow-glow h-1 w-1 rounded-full bg-secondary-400" />
             </motion.div>
           </div>
         </div>
