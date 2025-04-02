@@ -5,7 +5,7 @@ import { useLanguage } from "~/i18n/context";
 import { ServicesHero } from "../../components/services/sections/ServiceHero";
 import { ServicesBenefits } from "../../components/services/sections/ServiceBenefits";
 import { ServiceProcess } from "../../components/services/sections/ServiceProcess";
-import { ServiceDetail } from "../../components/services/sections/ServiceDetail";
+import { ServiceDetailGrid } from "../../components/services/sections/ServiceDetail";
 
 export default function ServicesPage() {
   const { t } = useLanguage();
@@ -30,17 +30,7 @@ export default function ServicesPage() {
       <ServiceProcess />
 
       {/* Detailed service sections */}
-      <div className="py-12 md:py-24">
-        {services.map((service, index) => (
-          <ServiceDetail
-            key={service.id}
-            serviceId={service.id}
-            icon={service.icon}
-            index={index}
-            isEven={index % 2 === 0}
-          />
-        ))}
-      </div>
+      <ServiceDetailGrid services={services} />
 
       <CtaSection />
     </>

@@ -1,195 +1,407 @@
 "use client";
 
-import { useRef } from "react";
-import { motion } from "framer-motion";
+import { useState, useRef, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { useLanguage } from "~/i18n/context";
-import { ScrollReveal, Parallax } from "~/provider/SmoothScrollProvider";
-import { cn } from "../../../lib/utils";
+import { ScrollReveal } from "~/provider/SmoothScrollProvider";
+import { cn } from "~/lib/utils";
 import { Button } from "../../ui/button";
 import { renderServiceIcon } from "../utils/ServiceIcons";
 
 interface ServiceDetailProps {
-  serviceId: string;
-  icon: string;
-  index: number;
-  isEven: boolean;
+  services: { id: string; icon: string }[];
 }
 
-export const ServiceDetail = ({
-  serviceId,
-  icon,
-  index,
-  isEven,
-}: ServiceDetailProps) => {
+export const ServiceDetailGrid = ({ services }: ServiceDetailProps) => {
   const { t, getNestedTranslation } = useLanguage();
-  const sectionRef = useRef<HTMLDivElement>(null);
+  const [activeService, setActiveService] = useState<string | null>(null);
+  const [prevScrollY, setPrevScrollY] = useState(0);
+  const gridRef = useRef<HTMLDivElement>(null);
 
-  // Get service data from translations
-  const serviceData = getNestedTranslation<any>(`services.${serviceId}`);
+  // Get data for all services correctly matching the translation structure
+  const servicesData = services.map((service) => {
+    // Direct access to translation keys as they appear in the structure
+    const name = t(`services.${service.id}` as any);
+    const description = t(`services.${service.id}.description` as any);
 
-  // Each service has a different feature list, which we pull from translations
-  const features = serviceData.features?.split("|") ?? [];
+    const featuresKey = `services.${service.id}.features` as any;
+    const featuresString = t(featuresKey);
 
-  // Get the service's name and description directly from the translations
-  const serviceName = t(`services.${serviceId}` as any);
-  const serviceDescription = t(`services.${serviceId}.description` as any);
+    // Split the features string by the pipe character if it's a valid string
+    const features =
+      featuresString && featuresString !== featuresKey
+        ? featuresString.split("|")
+        : [];
+
+    return {
+      id: service.id,
+      icon: service.icon,
+      name,
+      description,
+      features,
+      color: getServiceColor(service.id),
+    };
+  });
+
+  // Handle scroll detection for animations
+  useEffect(() => {
+    const handleScroll = () => {
+      if (gridRef.current) {
+        const scrollY = window.scrollY;
+        setPrevScrollY(scrollY);
+      }
+    };
+
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []); // Empty dependency array to run only once
+
+  // Auto-select first service on initial render (only once)
+  useEffect(() => {
+    if (!activeService && servicesData.length > 0) {
+      setActiveService(servicesData[0].id);
+    }
+  }, [servicesData]); // Only run when servicesData changes
+
   const consultButtonText = getNestedTranslation<string>(
     "services.consultButton",
   );
+  const activeServiceData = servicesData.find((s) => s.id === activeService);
 
   return (
-    <section
-      ref={sectionRef}
-      id={serviceId}
-      className={cn(
-        "py-16 md:py-24",
-        index !== 0 &&
-          "relative before:absolute before:inset-x-0 before:top-0 before:h-px before:bg-gradient-to-r before:from-transparent before:via-accent-500/30 before:to-transparent",
-      )}
-    >
-      <div className="container mx-auto px-4">
-        <div
-          className={cn(
-            "grid items-center gap-8 md:grid-cols-2 md:gap-12 lg:gap-16",
-            isEven ? "md:grid-flow-col" : "md:grid-flow-col-dense",
-          )}
-        >
-          {/* Image/Illustration Side */}
-          <ScrollReveal
-            direction={isEven ? "left" : "right"}
-            threshold={0.1}
-            delay={0.2}
+    <section className="relative py-16 md:py-24">
+      {/* Background elements */}
+      <div className="absolute inset-0 -z-10 overflow-hidden">
+        <div className="absolute inset-0 opacity-20 mix-blend-screen">
+          <svg
+            width="100%"
+            height="100%"
+            viewBox="0 0 100 100"
+            preserveAspectRatio="none"
           >
-            <div className="relative aspect-square">
-              {/* Decorative background element */}
-              <div className="absolute inset-0 -z-10 rounded-xl bg-gradient-to-br from-primary-900/30 to-accent-900/20 backdrop-blur-sm" />
-
-              {/* Service icon */}
-              <motion.div
-                className="flex h-full items-center justify-center"
-                initial={{ scale: 0.8, opacity: 0 }}
-                whileInView={{ scale: 1, opacity: 1 }}
-                transition={{
-                  duration: 0.7,
-                  delay: 0.3,
-                  ease: [0.165, 0.84, 0.44, 1],
-                }}
-                viewport={{ once: true, margin: "-100px" }}
+            <defs>
+              <radialGradient
+                id="gridGradient"
+                cx="50%"
+                cy="50%"
+                r="50%"
+                fx="50%"
+                fy="50%"
               >
-                <div className="h-40 w-40 text-accent-400 md:h-56 md:w-56 lg:h-64 lg:w-64">
-                  {renderServiceIcon(icon, "w-full h-full")}
-                </div>
-              </motion.div>
+                <stop
+                  offset="0%"
+                  stopColor={activeServiceData?.color || "#7C3AED"}
+                  stopOpacity="0.3"
+                />
+                <stop offset="100%" stopColor="#000" stopOpacity="0" />
+              </radialGradient>
+            </defs>
+            <rect
+              x="0"
+              y="0"
+              width="100%"
+              height="100%"
+              fill="url(#gridGradient)"
+            />
+          </svg>
+        </div>
 
-              {/* Animated corners */}
-              <motion.div
-                className="absolute left-0 top-0 h-4 w-4 rounded-tl-xl border-l border-t border-accent-500/50"
-                animate={{
-                  borderColor: [
-                    "rgba(124, 58, 237, 0.5)",
-                    "rgba(124, 58, 237, 0.8)",
-                    "rgba(124, 58, 237, 0.5)",
-                  ],
-                }}
-                transition={{ duration: 2, repeat: Infinity }}
+        {/* Grid pattern */}
+        <div className="absolute inset-0 opacity-10">
+          <svg width="100%" height="100%">
+            <pattern
+              id="grid"
+              width="40"
+              height="40"
+              patternUnits="userSpaceOnUse"
+            >
+              <path
+                d="M 40 0 L 0 0 0 40"
+                fill="none"
+                stroke="white"
+                strokeWidth="0.5"
               />
-              <motion.div
-                className="absolute right-0 top-0 h-4 w-4 rounded-tr-xl border-r border-t border-accent-500/50"
-                animate={{
-                  borderColor: [
-                    "rgba(124, 58, 237, 0.5)",
-                    "rgba(124, 58, 237, 0.8)",
-                    "rgba(124, 58, 237, 0.5)",
-                  ],
-                }}
-                transition={{ duration: 2, repeat: Infinity, delay: 0.5 }}
+            </pattern>
+            <rect width="100%" height="100%" fill="url(#grid)" />
+          </svg>
+        </div>
+      </div>
+
+      <div className="container mx-auto px-4">
+        <ScrollReveal direction="up" threshold={0.1}>
+          <div className="mb-16 text-center">
+            <span className="font-mono uppercase tracking-wider text-accent-500">
+              {t("services.subtitle")}
+            </span>
+            <h2 className="mb-6 text-3xl font-bold md:text-4xl lg:text-5xl">
+              {t("services.title")}
+            </h2>
+            <p className="mx-auto max-w-2xl text-lg text-neutral-300">
+              {t("services.description")}
+            </p>
+          </div>
+        </ScrollReveal>
+
+        {/* Service Grid */}
+        <div
+          ref={gridRef}
+          className="relative mx-auto mb-10 grid grid-cols-2 gap-3 md:grid-cols-4 md:gap-4 lg:max-w-5xl"
+        >
+          {servicesData.map((service, index) => (
+            <motion.div
+              key={service.id}
+              className={cn(
+                "group relative aspect-square cursor-pointer overflow-hidden rounded-2xl backdrop-blur-sm transition-all duration-300 hover:z-10",
+                activeService === service.id
+                  ? "bg-neutral-800/80 ring-2 ring-offset-2 ring-offset-black"
+                  : "bg-neutral-900/60",
+              )}
+              style={{
+                boxShadow:
+                  activeService === service.id
+                    ? `0 0 20px ${service.color}40`
+                    : "none",
+                ringColor: service.color,
+              }}
+              onClick={() => setActiveService(service.id)}
+              whileHover={{
+                scale: 1.05,
+                boxShadow: `0 0 30px ${service.color}30`,
+              }}
+              transition={{
+                type: "spring",
+                stiffness: 400,
+                damping: 20,
+              }}
+            >
+              {/* Decorative corner accents */}
+              <div
+                className="absolute left-0 top-0 h-2 w-2 rounded-tl-xl border-l border-t transition-colors duration-300 group-hover:border-accent-400"
+                style={{ borderColor: service.color }}
               />
-              <motion.div
-                className="absolute bottom-0 left-0 h-4 w-4 rounded-bl-xl border-b border-l border-accent-500/50"
-                animate={{
-                  borderColor: [
-                    "rgba(124, 58, 237, 0.5)",
-                    "rgba(124, 58, 237, 0.8)",
-                    "rgba(124, 58, 237, 0.5)",
-                  ],
-                }}
-                transition={{ duration: 2, repeat: Infinity, delay: 1 }}
+              <div
+                className="absolute right-0 top-0 h-2 w-2 rounded-tr-xl border-r border-t transition-colors duration-300 group-hover:border-accent-400"
+                style={{ borderColor: service.color }}
               />
-              <motion.div
-                className="absolute bottom-0 right-0 h-4 w-4 rounded-br-xl border-b border-r border-accent-500/50"
-                animate={{
-                  borderColor: [
-                    "rgba(124, 58, 237, 0.5)",
-                    "rgba(124, 58, 237, 0.8)",
-                    "rgba(124, 58, 237, 0.5)",
-                  ],
-                }}
-                transition={{ duration: 2, repeat: Infinity, delay: 1.5 }}
+              <div
+                className="absolute bottom-0 left-0 h-2 w-2 rounded-bl-xl border-b border-l transition-colors duration-300 group-hover:border-accent-400"
+                style={{ borderColor: service.color }}
               />
-            </div>
-          </ScrollReveal>
+              <div
+                className="absolute bottom-0 right-0 h-2 w-2 rounded-br-xl border-b border-r transition-colors duration-300 group-hover:border-accent-400"
+                style={{ borderColor: service.color }}
+              />
 
-          {/* Content Side */}
-          <ScrollReveal direction={isEven ? "right" : "left"} threshold={0.1}>
-            <div className="space-y-6">
-              <h2 className="text-3xl font-bold text-white md:text-4xl lg:text-5xl">
-                {serviceName}
-              </h2>
+              {/* Service Icon */}
+              <div className="flex h-full w-full flex-col items-center justify-center p-4">
+                <motion.div
+                  className="relative h-12 w-12 md:h-16 md:w-16"
+                  style={{ color: service.color }}
+                  animate={{
+                    scale: activeService === service.id ? [1, 1.1, 1] : 1,
+                  }}
+                  transition={{
+                    duration: 2,
+                    repeat: activeService === service.id ? Infinity : 0,
+                    repeatType: "reverse",
+                  }}
+                >
+                  {renderServiceIcon(service.icon, "w-full h-full")}
 
-              <p className="text-lg text-neutral-300">{serviceDescription}</p>
+                  {/* Glow effect for active service */}
+                  {activeService === service.id && (
+                    <motion.div
+                      className="absolute inset-0 -z-10 rounded-full opacity-60 blur-lg"
+                      style={{ backgroundColor: service.color }}
+                      animate={{ opacity: [0.6, 0.8, 0.6] }}
+                      transition={{ duration: 2, repeat: Infinity }}
+                    />
+                  )}
+                </motion.div>
 
-              <div className="space-y-4 pt-2">
-                <h3 className="text-xl font-semibold text-white">
-                  {getNestedTranslation<string>("services.keyFeatures")}
-                </h3>
+                {/* Service Name */}
+                <motion.h3
+                  className="mt-4 text-center text-sm font-bold md:text-base"
+                  style={{
+                    color:
+                      activeService === service.id ? service.color : "white",
+                  }}
+                >
+                  {service.name}
+                </motion.h3>
+              </div>
+            </motion.div>
+          ))}
+        </div>
 
-                <ul className="space-y-3">
-                  {features.map((feature, i) => (
-                    <motion.li
-                      key={i}
-                      initial={{ opacity: 0, x: -20 }}
-                      whileInView={{ opacity: 1, x: 0 }}
-                      transition={{
-                        duration: 0.5,
-                        delay: 0.2 + i * 0.1,
-                      }}
-                      viewport={{ once: true }}
-                      className="flex items-start"
-                    >
-                      <svg
-                        className="mr-3 mt-1.5 h-5 w-5 shrink-0 text-accent-400"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth="2"
-                          d="M5 13l4 4L19 7"
-                        />
-                      </svg>
-                      <span className="text-neutral-200">{feature}</span>
-                    </motion.li>
-                  ))}
-                </ul>
-
-                <div className="pt-4">
-                  <Button
-                    href="/contact"
-                    variant="outline"
-                    size="lg"
-                    glow
-                    magnetic
+        {/* Selected Service Detail */}
+        <AnimatePresence mode="wait">
+          {activeServiceData && (
+            <motion.div
+              key={activeServiceData.id}
+              className="mx-auto max-w-5xl rounded-2xl bg-neutral-900/80 p-6 backdrop-blur-sm md:p-8 lg:p-10"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.5 }}
+              style={{
+                boxShadow: `0 0 40px ${activeServiceData.color}20`,
+                borderLeft: `2px solid ${activeServiceData.color}`,
+                borderRight: `2px solid ${activeServiceData.color}`,
+              }}
+            >
+              <div className="grid gap-8 md:grid-cols-[1fr,2fr] md:gap-12">
+                {/* Left side: Icon and decoration */}
+                <div className="relative flex items-center justify-center">
+                  <motion.div
+                    className="relative h-32 w-32 md:h-48 md:w-48 lg:h-56 lg:w-56"
+                    style={{ color: activeServiceData.color }}
+                    initial={{ scale: 0.9, opacity: 0.5 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    transition={{ duration: 0.5 }}
                   >
-                    {consultButtonText}
-                  </Button>
+                    {renderServiceIcon(activeServiceData.icon, "w-full h-full")}
+
+                    {/* Animated glow effect */}
+                    <motion.div
+                      className="absolute inset-0 -z-10 rounded-full blur-2xl"
+                      style={{ backgroundColor: activeServiceData.color }}
+                      animate={{
+                        opacity: [0.2, 0.4, 0.2],
+                        scale: [0.9, 1.1, 0.9],
+                      }}
+                      transition={{
+                        duration: 5,
+                        repeat: Infinity,
+                        repeatType: "mirror",
+                      }}
+                    />
+                  </motion.div>
+
+                  {/* Decorative elements */}
+                  <motion.div
+                    className="absolute inset-0 -z-20"
+                    animate={{ rotate: 360 }}
+                    transition={{
+                      duration: 30,
+                      repeat: Infinity,
+                      ease: "linear",
+                    }}
+                  >
+                    <svg width="100%" height="100%" viewBox="0 0 100 100">
+                      <circle
+                        cx="50"
+                        cy="50"
+                        r="45"
+                        fill="none"
+                        stroke={activeServiceData.color}
+                        strokeWidth="0.5"
+                        strokeDasharray="1 5"
+                      />
+                    </svg>
+                  </motion.div>
+                </div>
+
+                {/* Right side: Content */}
+                <div className="space-y-6">
+                  <motion.h2
+                    className="text-3xl font-bold md:text-4xl lg:text-5xl"
+                    style={{ color: activeServiceData.color }}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.5, delay: 0.1 }}
+                  >
+                    {activeServiceData.name}
+                  </motion.h2>
+
+                  <motion.p
+                    className="text-lg text-neutral-300"
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.5, delay: 0.2 }}
+                  >
+                    {activeServiceData.description}
+                  </motion.p>
+
+                  <motion.div
+                    className="space-y-4 pt-2"
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.5, delay: 0.3 }}
+                  >
+                    <h3 className="text-xl font-semibold text-white">
+                      {getNestedTranslation<string>("services.keyFeatures")}
+                    </h3>
+
+                    <ul className="grid grid-cols-1 gap-3 md:grid-cols-2">
+                      {activeServiceData.features.map((feature, i) => (
+                        <motion.li
+                          key={i}
+                          initial={{ opacity: 0, x: -20 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{
+                            duration: 0.5,
+                            delay: 0.4 + i * 0.1,
+                          }}
+                          className="flex items-start"
+                        >
+                          <svg
+                            className="mr-3 mt-1.5 h-5 w-5 shrink-0"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                            style={{ color: activeServiceData.color }}
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth="2"
+                              d="M5 13l4 4L19 7"
+                            />
+                          </svg>
+                          <span className="text-neutral-200">{feature}</span>
+                        </motion.li>
+                      ))}
+                    </ul>
+
+                    <div className="pt-6">
+                      <Button
+                        href="/contact"
+                        variant="outline"
+                        size="lg"
+                        glow
+                        magnetic
+                        className="border-opacity-50 transition-all duration-300 hover:border-opacity-100"
+                        style={{
+                          borderColor: activeServiceData.color,
+                          color: activeServiceData.color,
+                        }}
+                      >
+                        {consultButtonText}
+                      </Button>
+                    </div>
+                  </motion.div>
                 </div>
               </div>
-            </div>
-          </ScrollReveal>
-        </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </section>
   );
 };
+
+// Helper function to get color based on service ID
+function getServiceColor(serviceId: string): string {
+  const colorMap: Record<string, string> = {
+    strategicPlanning: "#7C3AED", // Accent-500 (Violet)
+    digitalTransformation: "#60A5FA", // Primary-400 (Blue)
+    technicalArchitecture: "#2563EB", // Primary-600 (Royal Blue)
+    training: "#34D399", // Secondary-400 (Emerald)
+    configurations: "#A78BFA", // Accent-300 (Light Violet)
+    support: "#3B82F6", // Primary-500 (Blue)
+    consultations: "#8B5CF6", // Accent-400 (Violet)
+  };
+
+  return colorMap[serviceId] || "#7C3AED"; // Default to accent-500
+}
