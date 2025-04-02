@@ -13,55 +13,40 @@ interface ServiceDetailProps {
 }
 
 export const ServiceDetailGrid = ({ services }: ServiceDetailProps) => {
-  const { t, getNestedTranslation } = useLanguage();
+  const { t, getNestedTranslation, language } = useLanguage();
   const [activeService, setActiveService] = useState<string | null>(null);
   const [prevScrollY, setPrevScrollY] = useState(0);
   const gridRef = useRef<HTMLDivElement>(null);
+  // Use a ref to track the previous scroll position without causing re-renders
+  const scrollYRef = useRef(0);
 
   // Get data for all services correctly matching the translation structure
   const servicesData = services.map((service) => {
-    // Direct access to translation keys as they appear in the structure
-    const name = t(`services.${service.id}` as any);
-    const description = t(`services.${service.id}.description` as any);
+    // Get the entire service object with proper nesting
+    const serviceObj = getNestedTranslation<{
+      name: string;
+      description: string;
+      features: string;
+    }>(`services.${service.id}`);
 
-    const featuresKey = `services.${service.id}.features` as any;
-    const featuresString = t(featuresKey);
-
-    // Split the features string by the pipe character if it's a valid string
-    const features =
-      featuresString && featuresString !== featuresKey
-        ? featuresString.split("|")
-        : [];
+    // Split features
+    const features = serviceObj.features ? serviceObj.features.split("|") : [];
 
     return {
       id: service.id,
       icon: service.icon,
-      name,
-      description,
+      name: serviceObj.name || "",
+      description: serviceObj.description || "",
       features,
       color: getServiceColor(service.id),
     };
   });
 
-  // Handle scroll detection for animations
   useEffect(() => {
-    const handleScroll = () => {
-      if (gridRef.current) {
-        const scrollY = window.scrollY;
-        setPrevScrollY(scrollY);
-      }
-    };
-
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []); // Empty dependency array to run only once
-
-  // Auto-select first service on initial render (only once)
-  useEffect(() => {
-    if (!activeService && servicesData.length > 0) {
-      setActiveService(servicesData[0].id);
+    if (activeService === null && servicesData.length > 0) {
+      setActiveService(servicesData[0]!.id);
     }
-  }, [servicesData]); // Only run when servicesData changes
+  }, [servicesData.length, activeService]); // Use length instead of the whole array
 
   const consultButtonText = getNestedTranslation<string>(
     "services.consultButton",
@@ -161,7 +146,6 @@ export const ServiceDetailGrid = ({ services }: ServiceDetailProps) => {
                   activeService === service.id
                     ? `0 0 20px ${service.color}40`
                     : "none",
-                ringColor: service.color,
               }}
               onClick={() => setActiveService(service.id)}
               whileHover={{
@@ -334,34 +318,40 @@ export const ServiceDetailGrid = ({ services }: ServiceDetailProps) => {
                     </h3>
 
                     <ul className="grid grid-cols-1 gap-3 md:grid-cols-2">
-                      {activeServiceData.features.map((feature, i) => (
-                        <motion.li
-                          key={i}
-                          initial={{ opacity: 0, x: -20 }}
-                          animate={{ opacity: 1, x: 0 }}
-                          transition={{
-                            duration: 0.5,
-                            delay: 0.4 + i * 0.1,
-                          }}
-                          className="flex items-start"
-                        >
-                          <svg
-                            className="mr-3 mt-1.5 h-5 w-5 shrink-0"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                            style={{ color: activeServiceData.color }}
+                      {activeServiceData?.features?.length > 0 ? (
+                        activeServiceData.features.map((feature, i) => (
+                          <motion.li
+                            key={i}
+                            initial={{ opacity: 0, x: -20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{
+                              duration: 0.5,
+                              delay: 0.4 + i * 0.1,
+                            }}
+                            className="flex items-start"
                           >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth="2"
-                              d="M5 13l4 4L19 7"
-                            />
-                          </svg>
-                          <span className="text-neutral-200">{feature}</span>
-                        </motion.li>
-                      ))}
+                            <svg
+                              className="mr-3 mt-1.5 h-5 w-5 shrink-0"
+                              fill="none"
+                              viewBox="0 0 24 24"
+                              stroke="currentColor"
+                              style={{ color: activeServiceData.color }}
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth="2"
+                                d="M5 13l4 4L19 7"
+                              />
+                            </svg>
+                            <span className="text-neutral-200">{feature}</span>
+                          </motion.li>
+                        ))
+                      ) : (
+                        <li className="text-neutral-400">
+                          No features available
+                        </li>
+                      )}
                     </ul>
 
                     <div className="pt-6">

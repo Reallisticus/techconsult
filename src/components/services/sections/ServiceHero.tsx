@@ -3,15 +3,17 @@
 import { useRef, useState, useEffect } from "react";
 import { motion, useAnimation, AnimatePresence } from "framer-motion";
 import { useLanguage } from "~/i18n/context";
-import { silkscreen } from "~/lib/fonts";
+import { getDisplayFontClass, silkscreen } from "~/lib/fonts";
 import { useIsomorphicLayoutEffect } from "~/hooks/useIsomorphicLayout";
+import { cn } from "../../../lib/utils";
 
 export const ServicesHero = () => {
-  const { getNestedTranslation } = useLanguage();
+  const { getNestedTranslation, language } = useLanguage();
   const heroRef = useRef<HTMLDivElement>(null);
   const headlineRef = useRef<HTMLDivElement>(null);
   const gsapCtxRef = useRef<gsap.Context | null>(null);
   const [isMounted, setIsMounted] = useState(false);
+  const displayFontClass = getDisplayFontClass(language);
 
   const glitchControls = useAnimation();
 
@@ -31,20 +33,20 @@ export const ServicesHero = () => {
     heroTitle: string;
     heroSubtitle: string;
     heroDescription: string;
+    statsYears: string;
+    statsProjects: string;
+    statsClients: string;
   }>("services");
 
-  const title = heroContent?.heroTitle?.toUpperCase() || "OUR STRATEGIC";
-  const subtitle =
-    heroContent?.heroSubtitle?.toUpperCase() || "TECHNOLOGY SOLUTIONS";
-  const description =
-    heroContent?.heroDescription ||
-    "We deliver comprehensive technology services designed to transform your business, optimize operations, and drive sustainable growth.";
+  const title = heroContent?.heroTitle?.toUpperCase();
+  const subtitle = heroContent?.heroSubtitle?.toUpperCase();
+  const description = heroContent?.heroDescription;
 
   // Stats data
   const stats = [
-    { value: "10+", label: "Years Experience" },
-    { value: "200+", label: "Projects Delivered" },
-    { value: "95%", label: "Client Satisfaction" },
+    { value: "10+", label: heroContent?.statsYears },
+    { value: "200+", label: heroContent?.statsProjects },
+    { value: "95%", label: heroContent?.statsClients },
   ];
 
   // Initialize particles only after component mounts to prevent hydration errors
@@ -241,7 +243,14 @@ export const ServicesHero = () => {
               </div>
 
               {/* Main heading with typing effect */}
-              <h1 className="relative text-4xl md:text-5xl lg:text-6xl">
+              <h1
+                className={cn(
+                  "relative text-4xl tracking-tight md:text-5xl lg:text-6xl",
+                  language === "bg"
+                    ? "font-roboto lg:text-5xl"
+                    : "font-display",
+                )}
+              >
                 {/* First line with typing effect */}
                 <div className="heading-container relative mb-3 inline-flex">
                   <div

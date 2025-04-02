@@ -6,6 +6,10 @@ export const servicesEN = {
   heroDescription:
     "We deliver comprehensive technology services designed to transform your business, optimize operations, and drive sustainable growth.",
 
+  statsYears: "Years Experience",
+  statsProjects: "Projects Delivered",
+  statsClients: "Client Satisfaction",
+
   // Service details translations
   keyFeatures: "Key Features",
   consultButton: "Schedule a Consultation",
@@ -73,46 +77,60 @@ export const servicesEN = {
     },
   },
 
-  // Individual service details with features lists
-  strategicPlanning: "Strategic Planning",
-  "strategicPlanning.description":
-    "Aligning technology with business objectives to drive growth and success.",
-  "strategicPlanning.features":
-    "Technology roadmap development|Business-IT alignment strategies|Digital maturity assessment|Competitive advantage analysis|Technology investment prioritization|Innovation opportunity identification",
+  // Properly nested individual services
+  strategicPlanning: {
+    name: "Strategic Planning",
+    description:
+      "Aligning technology with business objectives to drive growth and success.",
+    features:
+      "Technology roadmap development|Business-IT alignment strategies|Digital maturity assessment|Competitive advantage analysis|Technology investment prioritization|Innovation opportunity identification",
+  },
 
-  digitalTransformation: "Digital Transformation",
-  "digitalTransformation.description":
-    "Revolutionizing business models through technology integration and process redesign.",
-  "digitalTransformation.features":
-    "Business process optimization|Legacy system modernization|Workflow automation solutions|Digital experience enhancement|Organizational change management|Enterprise-wide digital strategy",
+  digitalTransformation: {
+    name: "Digital Transformation",
+    description:
+      "Revolutionizing business models through technology integration and process redesign.",
+    features:
+      "Business process optimization|Legacy system modernization|Workflow automation solutions|Digital experience enhancement|Organizational change management|Enterprise-wide digital strategy",
+  },
 
-  technicalArchitecture: "Technical Architecture",
-  "technicalArchitecture.description":
-    "Designing robust, scalable technical solutions for long-term business success.",
-  "technicalArchitecture.features":
-    "System design & integration|Cloud migration strategy|Scalable infrastructure planning|Security architecture development|Performance optimization|Resilient system design",
+  technicalArchitecture: {
+    name: "Technical Architecture",
+    description:
+      "Designing robust, scalable technical solutions for long-term business success.",
+    features:
+      "System design & integration|Cloud migration strategy|Scalable infrastructure planning|Security architecture development|Performance optimization|Resilient system design",
+  },
 
-  training: "Training",
-  "training.description":
-    "Professional training to develop technological skills and enhance team capabilities.",
-  "training.features":
-    "Customized technical training programs|Skills gap analysis|Team capability development|Knowledge transfer frameworks|Technology adoption support|Continuous learning initiatives",
+  training: {
+    name: "Training",
+    description:
+      "Professional training to develop technological skills and enhance team capabilities.",
+    features:
+      "Customized technical training programs|Skills gap analysis|Team capability development|Knowledge transfer frameworks|Technology adoption support|Continuous learning initiatives",
+  },
 
-  configurations: "Configurations",
-  "configurations.description":
-    "Setup and optimization of system configurations for maximum performance.",
-  "configurations.features":
-    "System optimization services|Performance tuning|Integration configuration|Custom environment setup|Software parameter optimization|Configuration management",
+  configurations: {
+    name: "Configurations",
+    description:
+      "Setup and optimization of system configurations for maximum performance.",
+    features:
+      "System optimization services|Performance tuning|Integration configuration|Custom environment setup|Software parameter optimization|Configuration management",
+  },
 
-  support: "Support",
-  "support.description":
-    "Professional support to ensure system stability, security and optimal performance.",
-  "support.features":
-    "Proactive monitoring solutions|Incident response management|System maintenance|Technical troubleshooting|Regular health checks|Performance optimization",
+  support: {
+    name: "Support",
+    description:
+      "Professional support to ensure system stability, security and optimal performance.",
+    features:
+      "Proactive monitoring solutions|Incident response management|System maintenance|Technical troubleshooting|Regular health checks|Performance optimization",
+  },
 
-  consultations: "Consultations",
-  "consultations.description":
-    "Strategic consultations to help optimize your IT solutions and technology investments.",
-  "consultations.features":
-    "Expert technology advisory|Industry-specific guidance|Project scoping & planning|Vendor selection assistance|Risk assessment & mitigation|Technology adoption strategy",
+  consultations: {
+    name: "Consultations",
+    description:
+      "Strategic consultations to help optimize your IT solutions and technology investments.",
+    features:
+      "Expert technology advisory|Industry-specific guidance|Project scoping & planning|Vendor selection assistance|Risk assessment & mitigation|Technology adoption strategy",
+  },
 };
