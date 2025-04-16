@@ -1,19 +1,17 @@
 "use client";
 
 import { useRef, useState, useEffect } from "react";
-import { motion, useAnimation, AnimatePresence } from "framer-motion";
+import { motion, useAnimation } from "framer-motion";
 import { useLanguage } from "~/i18n/context";
-import { getDisplayFontClass, silkscreen } from "~/lib/fonts";
-import { useIsomorphicLayoutEffect } from "~/hooks/useIsomorphicLayout";
+import { silkscreen } from "~/lib/fonts";
 import { cn } from "../../../lib/utils";
 
 export const ServicesHero = () => {
   const { getNestedTranslation, language } = useLanguage();
   const heroRef = useRef<HTMLDivElement>(null);
   const headlineRef = useRef<HTMLDivElement>(null);
-  const gsapCtxRef = useRef<gsap.Context | null>(null);
   const [isMounted, setIsMounted] = useState(false);
-  const displayFontClass = getDisplayFontClass(language);
+  const unmountedRef = useRef(false); // Reference to track unmount status
 
   const glitchControls = useAnimation();
 
@@ -48,23 +46,27 @@ export const ServicesHero = () => {
     { value: "200+", label: heroContent?.statsProjects },
     { value: "95%", label: heroContent?.statsClients },
   ];
+  const glitchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Initialize particles only after component mounts to prevent hydration errors
   useEffect(() => {
     setIsMounted(true);
+    unmountedRef.current = false; // Reset unmounted flag on mount
 
     // Cursor blink effect
     const cursorInterval = setInterval(() => {
+      if (unmountedRef.current) return; // Skip if unmounted
       setShowCursor((prev) => !prev);
     }, 530);
 
-    // Glitch animation
+    // Glitch animation - fixed to properly handle unmounting
+
     const runGlitchAnim = async () => {
-      while (true) {
-        await new Promise((resolve) =>
-          setTimeout(resolve, Math.random() * 5000 + 2000),
-        );
-        if (!isMounted) break;
+      try {
+        // Only run if component is still mounted
+        if (unmountedRef.current) return;
+
+        // Run the animation if still mounted
         await glitchControls.start({
           x: [0, -2, 3, -1, 0, 2, -2, 0],
           opacity: [1, 0.8, 1, 0.9, 1, 0.9, 1],
@@ -77,15 +79,38 @@ export const ServicesHero = () => {
           ],
           transition: { duration: 0.4 },
         });
+
+        // Schedule next animation with random delay
+        if (!unmountedRef.current) {
+          const nextDelay = Math.random() * 5000 + 2000;
+          glitchTimeoutRef.current = setTimeout(runGlitchAnim, nextDelay);
+        }
+      } catch (error) {
+        // Silent error handling for animation failures
+        console.error("Glitch animation error:", error);
       }
     };
 
-    runGlitchAnim();
+    // Start the initial glitch animation cycle
+    glitchTimeoutRef.current = setTimeout(
+      runGlitchAnim,
+      Math.random() * 2000 + 1000,
+    );
 
+    // Cleanup function
     return () => {
+      unmountedRef.current = true; // Mark as unmounted first
       clearInterval(cursorInterval);
+
+      // Clear any pending animation timeouts
+      if (glitchTimeoutRef.current) {
+        clearTimeout(glitchTimeoutRef.current);
+      }
+
+      // Cancel any in-progress animations
+      glitchControls.stop();
     };
-  }, [isMounted]);
+  }, []);
 
   // Typing animation for the first line
   useEffect(() => {
@@ -94,17 +119,19 @@ export const ServicesHero = () => {
     // First line typing effect
     if (typedIndex < title.length) {
       const timeoutId = setTimeout(() => {
+        if (unmountedRef.current) return; // Skip if unmounted
         setTypedIndex((prev) => prev + 1);
       }, 80);
       return () => clearTimeout(timeoutId);
     } else if (typedIndex === title.length && !showSecondLine) {
       // After first line is complete, start second line
       const timeoutId = setTimeout(() => {
+        if (unmountedRef.current) return; // Skip if unmounted
         setShowSecondLine(true);
       }, 400);
       return () => clearTimeout(timeoutId);
     }
-  }, [typedIndex, title.length, isMounted, showSecondLine]);
+  }, [typedIndex, title?.length, isMounted, showSecondLine]);
 
   // Typing animation for the second line
   useEffect(() => {
@@ -112,17 +139,19 @@ export const ServicesHero = () => {
 
     if (secondLineTypedIndex < subtitle.length) {
       const timeoutId = setTimeout(() => {
+        if (unmountedRef.current) return; // Skip if unmounted
         setSecondLineTypedIndex((prev) => prev + 1);
       }, 80);
       return () => clearTimeout(timeoutId);
     } else if (secondLineTypedIndex === subtitle.length && !showDescription) {
       // After second line is complete, start description
       const timeoutId = setTimeout(() => {
+        if (unmountedRef.current) return; // Skip if unmounted
         setShowDescription(true);
       }, 400);
       return () => clearTimeout(timeoutId);
     }
-  }, [secondLineTypedIndex, subtitle.length, showSecondLine, showDescription]);
+  }, [secondLineTypedIndex, subtitle?.length, showSecondLine, showDescription]);
 
   // Typing animation for the description
   useEffect(() => {
@@ -130,17 +159,19 @@ export const ServicesHero = () => {
 
     if (descriptionTypedIndex < description.length) {
       const timeoutId = setTimeout(() => {
+        if (unmountedRef.current) return; // Skip if unmounted
         setDescriptionTypedIndex((prev) => prev + 1);
       }, 10); // Faster typing for description
       return () => clearTimeout(timeoutId);
     } else if (descriptionTypedIndex === description.length && !showStats) {
       // After description is complete, show stats
       const timeoutId = setTimeout(() => {
+        if (unmountedRef.current) return; // Skip if unmounted
         setShowStats(true);
       }, 400);
       return () => clearTimeout(timeoutId);
     }
-  }, [descriptionTypedIndex, description.length, showDescription, showStats]);
+  }, [descriptionTypedIndex, description?.length, showDescription, showStats]);
 
   // Sequential animation for stats boxes
   useEffect(() => {
@@ -155,6 +186,7 @@ export const ServicesHero = () => {
 
       if (statsTypedIndices[currentIdx]! < fullText.length) {
         const timeoutId = setTimeout(() => {
+          if (unmountedRef.current) return; // Skip if unmounted
           setStatsTypedIndices((prev) => {
             const newIndices = [...prev];
             newIndices[currentIdx] = prev[currentIdx]! + 1;
@@ -165,6 +197,7 @@ export const ServicesHero = () => {
       } else if (statsPhase < 2) {
         // Move to next stat box after short delay
         const timeoutId = setTimeout(() => {
+          if (unmountedRef.current) return; // Skip if unmounted
           setStatsPhase((prev) => prev + 1);
         }, 300);
         return () => clearTimeout(timeoutId);
@@ -256,9 +289,9 @@ export const ServicesHero = () => {
                   <div
                     className={`inline-block ${silkscreen.className} uppercase tracking-wide text-white`}
                   >
-                    {title.substring(0, typedIndex)}
+                    {title?.substring(0, typedIndex)}
                   </div>
-                  {typedIndex < title.length && showCursor && (
+                  {typedIndex < title?.length && showCursor && (
                     <span className="inline-block h-10 w-3 animate-pulse bg-secondary-400"></span>
                   )}
                 </div>
@@ -269,10 +302,11 @@ export const ServicesHero = () => {
                     <div
                       className={`inline-block ${silkscreen.className} uppercase tracking-wide text-accent-400`}
                     >
-                      {subtitle.substring(0, secondLineTypedIndex)}
-                      {secondLineTypedIndex < subtitle.length && showCursor && (
-                        <span className="inline-block h-10 w-3 animate-pulse bg-accent-400"></span>
-                      )}
+                      {subtitle?.substring(0, secondLineTypedIndex)}
+                      {secondLineTypedIndex < subtitle?.length &&
+                        showCursor && (
+                          <span className="inline-block h-10 w-3 animate-pulse bg-accent-400"></span>
+                        )}
                     </div>
                   )}
                 </div>
@@ -300,8 +334,8 @@ export const ServicesHero = () => {
                 </div>
                 <div className="relative">
                   <p className="hero-description relative mx-auto max-w-2xl text-lg text-neutral-300 md:mx-0 md:text-xl">
-                    {description.substring(0, descriptionTypedIndex)}
-                    {descriptionTypedIndex < description.length &&
+                    {description?.substring(0, descriptionTypedIndex)}
+                    {descriptionTypedIndex < description?.length &&
                       showCursor && (
                         <span className="ml-1 inline-block h-4 w-2 animate-pulse bg-accent-400"></span>
                       )}

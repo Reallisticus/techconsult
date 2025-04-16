@@ -17,7 +17,7 @@ import { cn } from "~/lib/utils";
 import { Button } from "~/components/ui/button";
 import { CaseStudyTranslations } from "~/i18n/translations/case-studies";
 
-// Define tech keywords related to case studies
+// Enhanced tech keywords related to case studies with more variety
 const CASE_STUDY_KEYWORDS = [
   "Innovation",
   "Success",
@@ -27,10 +27,18 @@ const CASE_STUDY_KEYWORDS = [
   "Strategy",
   "Solutions",
   "Implementation",
-  "Integration",
   "Analytics",
   "Growth",
   "Efficiency",
+  "Performance",
+  "Engagement",
+  "Conversion",
+  "Security",
+  "Optimization",
+  "Architecture",
+  "Scalability",
+  "Integration",
+  "Automation",
 ];
 
 export const CaseStudiesHero = () => {
@@ -47,6 +55,7 @@ export const CaseStudiesHero = () => {
   const [activeStatIndex, setActiveStatIndex] = useState(-1); // Start with no stats visible
   const [typedStats, setTypedStats] = useState(["", "", ""]);
   const [showButton, setShowButton] = useState(false);
+  const unmountedRef = useRef(false); // Track component mount status
 
   // For the 3D text effect
   const textRef = useRef<HTMLDivElement>(null);
@@ -89,23 +98,27 @@ export const CaseStudiesHero = () => {
   ];
   const [currentCommand, setCurrentCommand] = useState(0);
 
-  // For floating background elements
+  // For floating background elements - improved flow pattern
   const [keywordAnimations, setKeywordAnimations] = useState<
     Array<{
       keyword: string;
-      xPos: string;
-      yPos: string;
+      initialX: string;
+      initialY: string;
+      targetX: string;
+      targetY: string;
       rotation: number;
       opacity: number;
-      animRotate: number;
+      size: string;
+      color: string;
       duration: number;
       delay: number;
+      pathType: number; // 0: straight, 1: curve up, 2: curve down, 3: zigzag
     }>
   >([]);
 
   // Enhanced typewriter effect with synchronized sequence
   useEffect(() => {
-    if (!isMounted) return;
+    if (!isMounted || unmountedRef.current) return;
 
     const titleText = "FEATURED CASE STUDIES";
     const descriptionText =
@@ -115,6 +128,7 @@ export const CaseStudiesHero = () => {
     // Step 1: Type title first
     if (typedTitle.length < titleText.length) {
       const timeout = setTimeout(() => {
+        if (unmountedRef.current) return;
         setTypedTitle(titleText.substring(0, typedTitle.length + 1));
       }, 50); // Speed of typing
 
@@ -123,6 +137,7 @@ export const CaseStudiesHero = () => {
     // Step 2: Set title as complete & pause
     else if (!titleComplete) {
       const timeout = setTimeout(() => {
+        if (unmountedRef.current) return;
         setTitleComplete(true);
       }, 300); // Pause after title completes
 
@@ -131,6 +146,7 @@ export const CaseStudiesHero = () => {
     // Step 3: Type description
     else if (typedDescription.length < descriptionText.length) {
       const timeout = setTimeout(() => {
+        if (unmountedRef.current) return;
         setTypedDescription(
           descriptionText.substring(0, typedDescription.length + 1),
         );
@@ -141,6 +157,7 @@ export const CaseStudiesHero = () => {
     // Step 4: Set description as complete & pause
     else if (!descriptionComplete) {
       const timeout = setTimeout(() => {
+        if (unmountedRef.current) return;
         setDescriptionComplete(true);
       }, 300); // Pause after description completes
 
@@ -155,6 +172,7 @@ export const CaseStudiesHero = () => {
 
       // Show next stat box
       const timeout = setTimeout(() => {
+        if (unmountedRef.current) return;
         setActiveStatIndex(nextStatIndex);
       }, 300);
 
@@ -180,6 +198,7 @@ export const CaseStudiesHero = () => {
             (i === 2 && typedStats[1] === `${stats[1].value} ${stats[1].label}`)
           ) {
             const timeout = setTimeout(() => {
+              if (unmountedRef.current) return;
               const newTypedStats = [...typedStats];
               newTypedStats[i] = fullText.substring(
                 0,
@@ -196,6 +215,7 @@ export const CaseStudiesHero = () => {
       // All stats are typed, show button after a delay
       if (allStatsComplete && !showButton) {
         const timeout = setTimeout(() => {
+          if (unmountedRef.current) return;
           setShowButton(true);
         }, 300);
 
@@ -215,36 +235,73 @@ export const CaseStudiesHero = () => {
     caseStudiesData?.description,
   ]);
 
-  // Generate keyword animations on client-side only
+  // Generate improved keyword animations
   useEffect(() => {
-    if (!isMounted || keywordAnimations.length > 0) return;
+    if (!isMounted || keywordAnimations.length > 0 || unmountedRef.current)
+      return;
 
-    // Only run this once client-side to prevent hydration mismatch
+    // Define color palette for keywords
+    const colors = [
+      "#a78bfa", // Light purple
+      "#8b5cf6", // Medium purple
+      "#7c3aed", // Accent purple
+      "#6236FF", // Blue-purple
+      "#4f46e5", // Indigo
+    ];
+
+    // Create animations that flow across the screen in various patterns
     const generatedAnimations = CASE_STUDY_KEYWORDS.map((keyword, index) => {
-      // For the first 5 keywords, place them in the upper left corner (red circle area)
-      if (index < 5) {
-        return {
-          keyword,
-          xPos: `${5 + Math.random() * 25}%`, // Concentrated in the left side
-          yPos: `${5 + Math.random() * 15}%`, // Concentrated in the upper portion
-          rotation: Math.random() * 20 - 10, // Less extreme rotation
-          opacity: 0.6 + Math.random() * 0.4, // Higher opacity
-          animRotate: Math.random() > 0.5 ? 5 : -5, // Less rotation for better readability
-          duration: 3 + Math.random() * 5,
-          delay: Math.random() * 2,
-        };
+      // Determine starting position - distribute across the edges
+      let initialX, initialY, targetX, targetY;
+      const flowPattern = index % 4; // 0-3 different patterns
+
+      // Size variations
+      const size = `${0.8 + Math.random() * 0.4}em`;
+
+      // Choose color from palette
+      const color = colors[Math.floor(Math.random() * colors.length)];
+
+      // Create different flow patterns
+      switch (flowPattern) {
+        case 0: // Left to right
+          initialX = "-5%";
+          initialY = `${10 + Math.random() * 80}%`;
+          targetX = "105%";
+          targetY = `${10 + Math.random() * 80}%`;
+          break;
+        case 1: // Right to left
+          initialX = "105%";
+          initialY = `${10 + Math.random() * 80}%`;
+          targetX = "-5%";
+          targetY = `${10 + Math.random() * 80}%`;
+          break;
+        case 2: // Top to bottom
+          initialX = `${10 + Math.random() * 80}%`;
+          initialY = "-5%";
+          targetX = `${10 + Math.random() * 80}%`;
+          targetY = "105%";
+          break;
+        case 3: // Bottom to top
+          initialX = `${10 + Math.random() * 80}%`;
+          initialY = "105%";
+          targetX = `${10 + Math.random() * 80}%`;
+          targetY = "-5%";
+          break;
       }
 
-      // Distribute the rest normally
       return {
         keyword,
-        xPos: `${-10 + Math.random() * 120}%`,
-        yPos: `${10 + Math.random() * 80}%`,
+        initialX,
+        initialY,
+        targetX,
+        targetY,
         rotation: Math.random() * 20 - 10,
-        opacity: 0.4 + Math.random() * 0.3,
-        animRotate: Math.random() > 0.5 ? 5 : -5,
-        duration: 3 + Math.random() * 5,
-        delay: Math.random() * 2,
+        opacity: 0.5 + Math.random() * 0.5,
+        size,
+        color,
+        duration: 15 + Math.random() * 15, // Slower movement for better visibility
+        delay: Math.random() * 10, // Staggered start times
+        pathType: Math.floor(Math.random() * 4), // Random path type
       };
     });
 
@@ -253,18 +310,22 @@ export const CaseStudiesHero = () => {
 
   useEffect(() => {
     setIsMounted(true);
+    unmountedRef.current = false;
 
     // Show terminal after a delay
     const terminalTimer = setTimeout(() => {
+      if (unmountedRef.current) return;
       setShowTerminal(true);
     }, 500);
 
     // Automatically cycle through dots
     const interval = setInterval(() => {
+      if (unmountedRef.current) return;
       setActiveDot((prev) => (prev + 1) % totalDots);
     }, 3000);
 
     return () => {
+      unmountedRef.current = true;
       clearTimeout(terminalTimer);
       clearInterval(interval);
     };
@@ -272,7 +333,7 @@ export const CaseStudiesHero = () => {
 
   // Terminal typing effects
   useEffect(() => {
-    if (!isMounted || !showTerminal) return;
+    if (!isMounted || !showTerminal || unmountedRef.current) return;
 
     let timeout: NodeJS.Timeout;
 
@@ -280,10 +341,12 @@ export const CaseStudiesHero = () => {
       const command = terminalCommands[currentCommand];
       if (terminalText.length < command.length) {
         timeout = setTimeout(() => {
+          if (unmountedRef.current) return;
           setTerminalText(command.substring(0, terminalText.length + 1));
         }, 40);
       } else {
         timeout = setTimeout(() => {
+          if (unmountedRef.current) return;
           setCurrentCommand((prev) => prev + 1);
           setTerminalText("");
         }, 1000);
@@ -295,9 +358,10 @@ export const CaseStudiesHero = () => {
 
   // Set up mouse tracking
   useEffect(() => {
-    if (!isMounted) return;
+    if (!isMounted || unmountedRef.current) return;
 
     const handleMouseMove = (e: MouseEvent) => {
+      if (unmountedRef.current) return;
       const { clientX, clientY } = e;
       const centerX = window.innerWidth / 2;
       const centerY = window.innerHeight / 2;
@@ -309,7 +373,7 @@ export const CaseStudiesHero = () => {
   }, [mouseX, mouseY, isMounted]);
 
   useEffect(() => {
-    if (isInView) {
+    if (isInView && !unmountedRef.current) {
       controls.start("visible");
     } else {
       controls.start("hidden");
@@ -318,21 +382,31 @@ export const CaseStudiesHero = () => {
 
   // GSAP animation for the hero section
   useIsomorphicLayoutEffect(() => {
-    if (!headlineRef.current || !isMounted || gsapCtxRef.current) return;
+    if (
+      !headlineRef.current ||
+      !isMounted ||
+      gsapCtxRef.current ||
+      unmountedRef.current
+    )
+      return;
 
     // Safe import of GSAP
     import("gsap")
       .then(({ gsap }) => {
+        if (unmountedRef.current) return;
+
         try {
           // Direct import of SplitText from gsap-trial since we know we're using trial
           import("gsap-trial/SplitText")
             .then((module) => {
+              if (unmountedRef.current) return;
+
               const SplitText = module.SplitText;
               gsap.registerPlugin(SplitText);
 
               const ctx = gsap.context(() => {
                 // Split text into chars for detailed animation
-                if (headlineRef.current) {
+                if (headlineRef.current && !unmountedRef.current) {
                   try {
                     const split = new SplitText(headlineRef.current, {
                       type: "chars",
@@ -350,13 +424,15 @@ export const CaseStudiesHero = () => {
                   } catch (e) {
                     console.error("SplitText error:", e);
                     // Fallback animation if SplitText fails
-                    gsap.from(headlineRef.current, {
-                      opacity: 0,
-                      y: 30,
-                      duration: 0.8,
-                      delay: 0.3,
-                      ease: "power2.out",
-                    });
+                    if (!unmountedRef.current && headlineRef.current) {
+                      gsap.from(headlineRef.current, {
+                        opacity: 0,
+                        y: 30,
+                        duration: 0.8,
+                        delay: 0.3,
+                        ease: "power2.out",
+                      });
+                    }
                   }
                 }
 
@@ -364,7 +440,7 @@ export const CaseStudiesHero = () => {
                 const description = document.querySelector(
                   ".case-studies-description",
                 );
-                if (description) {
+                if (description && !unmountedRef.current) {
                   gsap.from(description, {
                     opacity: 0,
                     y: 30,
@@ -376,7 +452,7 @@ export const CaseStudiesHero = () => {
 
                 // Animate stats boxes
                 const statsBoxes = document.querySelectorAll(".stats-box");
-                if (statsBoxes.length) {
+                if (statsBoxes.length && !unmountedRef.current) {
                   gsap.from(statsBoxes, {
                     opacity: 0,
                     y: 20,
@@ -389,7 +465,7 @@ export const CaseStudiesHero = () => {
 
                 // Animate button
                 const button = document.querySelector(".cta-button");
-                if (button) {
+                if (button && !unmountedRef.current) {
                   gsap.from(button, {
                     opacity: 0,
                     y: 20,
@@ -401,7 +477,7 @@ export const CaseStudiesHero = () => {
 
                 // Animate the showcase dots
                 const dots = document.querySelectorAll(".showcase-dot");
-                if (dots.length) {
+                if (dots.length && !unmountedRef.current) {
                   gsap.from(dots, {
                     scale: 0,
                     opacity: 0,
@@ -418,8 +494,10 @@ export const CaseStudiesHero = () => {
             .catch((e) => {
               console.error("SplitText import error:", e);
               // Fallback animation without SplitText
+              if (unmountedRef.current) return;
+
               const ctx = gsap.context(() => {
-                if (headlineRef.current) {
+                if (headlineRef.current && !unmountedRef.current) {
                   gsap.from(headlineRef.current, {
                     opacity: 0,
                     y: 30,
@@ -433,7 +511,7 @@ export const CaseStudiesHero = () => {
                 const description = document.querySelector(
                   ".case-studies-description",
                 );
-                if (description) {
+                if (description && !unmountedRef.current) {
                   gsap.from(description, {
                     opacity: 0,
                     y: 30,
@@ -445,7 +523,7 @@ export const CaseStudiesHero = () => {
 
                 // Animate stats boxes
                 const statsBoxes = document.querySelectorAll(".stats-box");
-                if (statsBoxes.length) {
+                if (statsBoxes.length && !unmountedRef.current) {
                   gsap.from(statsBoxes, {
                     opacity: 0,
                     y: 20,
@@ -458,7 +536,7 @@ export const CaseStudiesHero = () => {
 
                 // Animate button
                 const button = document.querySelector(".cta-button");
-                if (button) {
+                if (button && !unmountedRef.current) {
                   gsap.from(button, {
                     opacity: 0,
                     y: 20,
@@ -470,7 +548,7 @@ export const CaseStudiesHero = () => {
 
                 // Animate the showcase dots
                 const dots = document.querySelectorAll(".showcase-dot");
-                if (dots.length) {
+                if (dots.length && !unmountedRef.current) {
                   gsap.from(dots, {
                     scale: 0,
                     opacity: 0,
@@ -526,6 +604,84 @@ export const CaseStudiesHero = () => {
     { id: "cube-8", x: "50%", y: "80%", scale: 1.1, delay: 2.1 },
   ];
 
+  // Helper function to get path for floating keywords
+  const getPath = (item: any) => {
+    switch (item.pathType) {
+      case 1: // Curve up
+        return {
+          path: {
+            x: [
+              item.initialX,
+              `calc(${item.initialX} + (${item.targetX} - ${item.initialX}) * 0.5)`,
+              item.targetX,
+            ],
+            y: [item.initialY, `calc(${item.initialY} - 20%)`, item.targetY],
+          },
+          transition: {
+            duration: item.duration,
+            repeat: Infinity,
+            ease: "linear",
+            delay: item.delay,
+          },
+        };
+      case 2: // Curve down
+        return {
+          path: {
+            x: [
+              item.initialX,
+              `calc(${item.initialX} + (${item.targetX} - ${item.initialX}) * 0.5)`,
+              item.targetX,
+            ],
+            y: [item.initialY, `calc(${item.initialY} + 20%)`, item.targetY],
+          },
+          transition: {
+            duration: item.duration,
+            repeat: Infinity,
+            ease: "linear",
+            delay: item.delay,
+          },
+        };
+      case 3: // Zigzag
+        return {
+          path: {
+            x: [
+              item.initialX,
+              `calc(${item.initialX} + (${item.targetX} - ${item.initialX}) * 0.25)`,
+              `calc(${item.initialX} + (${item.targetX} - ${item.initialX}) * 0.5)`,
+              `calc(${item.initialX} + (${item.targetX} - ${item.initialX}) * 0.75)`,
+              item.targetX,
+            ],
+            y: [
+              item.initialY,
+              `calc(${item.initialY} - 10%)`,
+              `calc(${item.initialY} + 10%)`,
+              `calc(${item.initialY} - 10%)`,
+              item.targetY,
+            ],
+          },
+          transition: {
+            duration: item.duration,
+            repeat: Infinity,
+            ease: "linear",
+            delay: item.delay,
+          },
+        };
+      default: // Straight
+        return {
+          path: {
+            x: [item.initialX, item.targetX],
+            y: [item.initialY, item.targetY],
+          },
+          transition: {
+            duration: item.duration,
+            repeat: Infinity,
+            ease: "linear",
+            delay: item.delay,
+          },
+        };
+    }
+  };
+
   return (
     <>
       <section
@@ -575,36 +731,32 @@ export const CaseStudiesHero = () => {
             </svg>
           </div>
 
-          {/* Tech keywords floating in background - enhanced visibility */}
+          {/* Tech keywords floating across the scene with varied paths */}
           {isMounted && keywordAnimations.length > 0 && (
             <div className="pointer-events-none absolute inset-0 h-full w-full overflow-hidden">
-              {keywordAnimations.map((item) => (
-                <motion.div
-                  key={item.keyword}
-                  className="absolute font-mono text-sm md:text-base"
-                  style={{
-                    x: item.xPos,
-                    y: item.yPos,
-                    rotateZ: item.rotation,
-                    opacity: item.opacity,
-                    color: "#a78bfa", // Light purple color
-                    textShadow: "0 0 8px rgba(124, 58, 237, 0.8)", // Enhanced glow effect
-                    fontWeight: "bold", // Make it bold for better visibility
-                  }}
-                  animate={{
-                    y: ["0%", "5%", "0%"],
-                    rotate: [0, item.animRotate, 0],
-                  }}
-                  transition={{
-                    duration: item.duration,
-                    repeat: Infinity,
-                    ease: "easeInOut",
-                    delay: item.delay,
-                  }}
-                >
-                  {item.keyword}
-                </motion.div>
-              ))}
+              {keywordAnimations.map((item, idx) => {
+                const pathAnimation = getPath(item);
+
+                return (
+                  <motion.div
+                    key={`${item.keyword}-${idx}`}
+                    className="absolute font-mono font-bold"
+                    style={{
+                      x: item.initialX,
+                      y: item.initialY,
+                      rotateZ: item.rotation,
+                      opacity: item.opacity,
+                      color: item.color,
+                      fontSize: item.size,
+                      textShadow: "0 0 8px rgba(124, 58, 237, 0.8)", // Enhanced glow effect
+                    }}
+                    animate={pathAnimation.path}
+                    transition={pathAnimation.transition}
+                  >
+                    {item.keyword}
+                  </motion.div>
+                );
+              })}
             </div>
           )}
 

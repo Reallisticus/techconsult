@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useLanguage } from "~/i18n/context";
 import { ScrollReveal } from "~/provider/SmoothScrollProvider";
@@ -17,8 +17,14 @@ export const ServiceDetailGrid = ({ services }: ServiceDetailProps) => {
   const [activeService, setActiveService] = useState<string | null>(null);
   const [prevScrollY, setPrevScrollY] = useState(0);
   const gridRef = useRef<HTMLDivElement>(null);
-  // Use a ref to track the previous scroll position without causing re-renders
   const scrollYRef = useRef(0);
+
+  // Auto-rotation state
+  const [isPaused, setIsPaused] = useState(false);
+  const [isHovering, setIsHovering] = useState(false);
+  const resumeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const rotationIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const manualInteractionRef = useRef(false);
 
   // Get data for all services correctly matching the translation structure
   const servicesData = services.map((service) => {
@@ -42,11 +48,122 @@ export const ServiceDetailGrid = ({ services }: ServiceDetailProps) => {
     };
   });
 
+  // Function to advance to the next service in rotation
+  const goToNextService = useCallback(() => {
+    setActiveService((current) => {
+      if (!current) return servicesData[0]?.id || null;
+
+      const currentIndex = servicesData.findIndex((s) => s.id === current);
+      const nextIndex = (currentIndex + 1) % servicesData.length;
+      return servicesData[nextIndex]?.id || current;
+    });
+  }, [servicesData]);
+
+  // Initialize active service
   useEffect(() => {
     if (activeService === null && servicesData.length > 0) {
       setActiveService(servicesData[0]!.id);
     }
-  }, [servicesData.length, activeService]); // Use length instead of the whole array
+  }, [servicesData.length, activeService]);
+
+  // Set up the auto-rotation timer
+  useEffect(() => {
+    // Don't start timer if paused or less than 2 services
+    if (isPaused || servicesData.length <= 1) {
+      if (rotationIntervalRef.current) {
+        clearInterval(rotationIntervalRef.current);
+        rotationIntervalRef.current = null;
+      }
+      return;
+    }
+
+    // Clear any existing interval to prevent duplicates
+    if (rotationIntervalRef.current) {
+      clearInterval(rotationIntervalRef.current);
+    }
+
+    // Set up new interval - rotate every 3 seconds
+    rotationIntervalRef.current = setInterval(goToNextService, 4000);
+
+    // Clean up on unmount
+    return () => {
+      if (rotationIntervalRef.current) {
+        clearInterval(rotationIntervalRef.current);
+        rotationIntervalRef.current = null;
+      }
+    };
+  }, [isPaused, goToNextService, servicesData.length]);
+
+  // Clean up resume timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (resumeTimeoutRef.current) {
+        clearTimeout(resumeTimeoutRef.current);
+        resumeTimeoutRef.current = null;
+      }
+    };
+  }, []);
+
+  // Handle page visibility changes
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.hidden) {
+        // Pause when tab is not visible
+        setIsPaused(true);
+      } else if (!manualInteractionRef.current && !isHovering) {
+        // Resume when tab becomes visible again if not manually paused
+        setIsPaused(false);
+      }
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
+  }, [isHovering]);
+
+  // Handle service click with reset of rotation timer
+  const handleServiceClick = useCallback((serviceId: string) => {
+    setActiveService(serviceId);
+
+    // User manually interacted, so pause auto-rotation
+    setIsPaused(true);
+    manualInteractionRef.current = true;
+
+    // Clear any existing resume timeout
+    if (resumeTimeoutRef.current) {
+      clearTimeout(resumeTimeoutRef.current);
+    }
+
+    // Resume auto-rotation after period of inactivity
+    resumeTimeoutRef.current = setTimeout(() => {
+      setIsPaused(false);
+      manualInteractionRef.current = false;
+    }, 8000); // Resume after 8 seconds
+  }, []);
+
+  // Mouse enter/leave handlers for hover detection
+  const handleMouseEnter = useCallback(() => {
+    setIsHovering(true);
+    setIsPaused(true);
+  }, []);
+
+  const handleMouseLeave = useCallback(() => {
+    setIsHovering(false);
+
+    // Don't resume immediately if there was manual interaction
+    if (manualInteractionRef.current) return;
+
+    // Resume auto-rotation after a short delay
+    if (resumeTimeoutRef.current) {
+      clearTimeout(resumeTimeoutRef.current);
+    }
+
+    resumeTimeoutRef.current = setTimeout(() => {
+      setIsPaused(false);
+    }, 1000); // Resume after 1 second
+  }, []);
 
   const consultButtonText = getNestedTranslation<string>(
     "services.consultButton",
@@ -127,10 +244,12 @@ export const ServiceDetailGrid = ({ services }: ServiceDetailProps) => {
           </div>
         </ScrollReveal>
 
-        {/* Service Grid */}
+        {/* Service Grid with mouse hover detection */}
         <div
           ref={gridRef}
           className="relative mx-auto mb-10 grid grid-cols-2 gap-3 md:grid-cols-4 md:gap-4 lg:max-w-5xl"
+          onMouseEnter={handleMouseEnter}
+          onMouseLeave={handleMouseLeave}
         >
           {servicesData.map((service, index) => (
             <motion.div
@@ -147,7 +266,7 @@ export const ServiceDetailGrid = ({ services }: ServiceDetailProps) => {
                     ? `0 0 20px ${service.color}40`
                     : "none",
               }}
-              onClick={() => setActiveService(service.id)}
+              onClick={() => handleServiceClick(service.id)}
               whileHover={{
                 scale: 1.05,
                 boxShadow: `0 0 30px ${service.color}30`,
@@ -218,7 +337,7 @@ export const ServiceDetailGrid = ({ services }: ServiceDetailProps) => {
           ))}
         </div>
 
-        {/* Selected Service Detail */}
+        {/* Selected Service Detail with hover detection */}
         <AnimatePresence mode="wait">
           {activeServiceData && (
             <motion.div
@@ -233,6 +352,8 @@ export const ServiceDetailGrid = ({ services }: ServiceDetailProps) => {
                 borderLeft: `2px solid ${activeServiceData.color}`,
                 borderRight: `2px solid ${activeServiceData.color}`,
               }}
+              onMouseEnter={handleMouseEnter}
+              onMouseLeave={handleMouseLeave}
             >
               <div className="grid gap-8 md:grid-cols-[1fr,2fr] md:gap-12">
                 {/* Left side: Icon and decoration */}
