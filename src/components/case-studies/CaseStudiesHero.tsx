@@ -1,3 +1,4 @@
+// main page hero dots
 "use client";
 
 import { useRef, useState, useEffect } from "react";
@@ -17,46 +18,27 @@ import { cn } from "~/lib/utils";
 import { Button } from "~/components/ui/button";
 import { CaseStudyTranslations } from "~/i18n/translations/case-studies";
 
-// Enhanced tech keywords related to case studies with more variety
-const CASE_STUDY_KEYWORDS = [
-  "Innovation",
-  "Success",
-  "ROI",
-  "Transformation",
-  "Results",
-  "Strategy",
-  "Solutions",
-  "Implementation",
-  "Analytics",
-  "Growth",
-  "Efficiency",
-  "Performance",
-  "Engagement",
-  "Conversion",
-  "Security",
-  "Optimization",
-  "Architecture",
-  "Scalability",
-  "Integration",
-  "Automation",
-];
-
-export const CaseStudiesHero = () => {
+const CaseStudiesHero = () => {
   const { getNestedTranslation, language } = useLanguage();
   const heroRef = useRef<HTMLDivElement>(null);
   const headlineRef = useRef<HTMLDivElement>(null);
   const gsapCtxRef = useRef<gsap.Context | null>(null);
   const [isMounted, setIsMounted] = useState(false);
-  const displayFontClass = getDisplayFontClass(language);
   const [typedTitle, setTypedTitle] = useState("");
   const [titleComplete, setTitleComplete] = useState(false);
   const [typedDescription, setTypedDescription] = useState("");
   const [descriptionComplete, setDescriptionComplete] = useState(false);
-  const [activeStatIndex, setActiveStatIndex] = useState(-1); // Start with no stats visible
+  const [activeStatIndex, setActiveStatIndex] = useState(-1);
   const [typedStats, setTypedStats] = useState(["", "", ""]);
   const [showButton, setShowButton] = useState(false);
-  const unmountedRef = useRef(false); // Track component mount status
-
+  const unmountedRef = useRef(false);
+  const [isTitleTyping, setIsTitleTyping] = useState(true);
+  // Track swipe direction for animations
+  const [direction, setDirection] = useState(0);
+  // For the animated showcase dots
+  const [activeDot, setActiveDot] = useState(0);
+  // Track when slider content is ready to display
+  const [showSliderContent, setShowSliderContent] = useState(false);
   // For the 3D text effect
   const textRef = useRef<HTMLDivElement>(null);
   const isInView = useInView(textRef, { once: false, amount: 0.3 });
@@ -77,16 +59,36 @@ export const CaseStudiesHero = () => {
   const caseStudiesData =
     getNestedTranslation<CaseStudyTranslations>("caseStudies");
 
-  // For the animated showcase dots
-  const [activeDot, setActiveDot] = useState(0);
   const totalDots = caseStudiesData?.cases?.length || 3;
 
-  // Stats for case studies - matching the image
-  const stats = [
+  // Stats - use translations or fallback to defaults
+  const stats = caseStudiesData?.stats || [
     { value: "100+", label: "Completed Projects" },
     { value: "95%", label: "Client Satisfaction" },
     { value: "40%", label: "Avg. Efficiency Gain" },
   ];
+
+  // Restart animations when language changes
+  useEffect(() => {
+    if (isMounted) {
+      // On language change, reset everything
+      setIsTitleTyping(true);
+      setTypedTitle("");
+      setTitleComplete(false);
+      setTypedDescription("");
+      setDescriptionComplete(false);
+      setActiveStatIndex(-1);
+      setTypedStats(["", "", ""]);
+      setShowButton(false);
+      setShowSliderContent(false);
+
+      // Kill any GSAP animations
+      if (gsapCtxRef.current) {
+        gsapCtxRef.current.revert();
+        gsapCtxRef.current = null;
+      }
+    }
+  }, [language, isMounted]);
 
   // For terminal animation
   const [showTerminal, setShowTerminal] = useState(false);
@@ -98,73 +100,90 @@ export const CaseStudiesHero = () => {
   ];
   const [currentCommand, setCurrentCommand] = useState(0);
 
-  // For floating background elements - improved flow pattern
-  const [keywordAnimations, setKeywordAnimations] = useState<
-    Array<{
-      keyword: string;
-      initialX: string;
-      initialY: string;
-      targetX: string;
-      targetY: string;
-      rotation: number;
-      opacity: number;
-      size: string;
-      color: string;
-      duration: number;
-      delay: number;
-      pathType: number; // 0: straight, 1: curve up, 2: curve down, 3: zigzag
-    }>
-  >([]);
+  // Reset the typewriter effect when language changes
+  useEffect(() => {
+    if (!isMounted) return;
+
+    // Kill any running animations/timers before resetting
+    const killAnimations = setTimeout(() => {
+      // Reset the typewriter states
+      setIsTitleTyping(true);
+      setTypedTitle("");
+      setTitleComplete(false);
+      setTypedDescription("");
+      setDescriptionComplete(false);
+      setActiveStatIndex(-1);
+      setTypedStats(["", "", ""]);
+      setShowButton(false);
+      setShowSliderContent(false);
+    }, 50); // Small delay to ensure proper cleanup
+
+    return () => clearTimeout(killAnimations);
+  }, [language, isMounted]);
+
+  useEffect(() => {
+    if (!isMounted || unmountedRef.current || !caseStudiesData?.title) return;
+
+    const titleText = caseStudiesData.title.toUpperCase();
+    let timeoutId: NodeJS.Timeout;
+
+    // Only run this if we're still typing and haven't completed
+    if (isTitleTyping && typedTitle.length < titleText.length) {
+      timeoutId = setTimeout(() => {
+        if (unmountedRef.current) return;
+
+        // Add the next character
+        const nextChar = titleText.charAt(typedTitle.length);
+        const newText = typedTitle + nextChar;
+
+        // Update state with the new text
+        setTypedTitle(newText);
+
+        // Check if we're done
+        if (newText.length >= titleText.length) {
+          setIsTitleTyping(false);
+          setTitleComplete(true);
+        }
+      }, 50);
+    }
+
+    return () => {
+      // Clean up timeout if component unmounts or effect re-runs
+      if (timeoutId) clearTimeout(timeoutId);
+    };
+  }, [isMounted, typedTitle, isTitleTyping]); // Only depend on these three states
 
   // Enhanced typewriter effect with synchronized sequence
   useEffect(() => {
     if (!isMounted || unmountedRef.current) return;
 
-    const titleText = "FEATURED CASE STUDIES";
     const descriptionText =
       caseStudiesData?.description ||
       "Discover how we've helped businesses transform their operations and achieve remarkable results through strategic technology implementations.";
 
-    // Step 1: Type title first
-    if (typedTitle.length < titleText.length) {
-      const timeout = setTimeout(() => {
-        if (unmountedRef.current) return;
-        setTypedTitle(titleText.substring(0, typedTitle.length + 1));
-      }, 50); // Speed of typing
+    if (titleComplete && !descriptionComplete) {
+      // Type description
+      if (typedDescription.length < descriptionText.length) {
+        const timeout = setTimeout(() => {
+          if (unmountedRef.current) return;
+          setTypedDescription(
+            descriptionText.substring(0, typedDescription.length + 1),
+          );
+        }, 10); // Faster typing for description
 
-      return () => clearTimeout(timeout);
-    }
-    // Step 2: Set title as complete & pause
-    else if (!titleComplete) {
-      const timeout = setTimeout(() => {
-        if (unmountedRef.current) return;
-        setTitleComplete(true);
-      }, 300); // Pause after title completes
+        return () => clearTimeout(timeout);
+      } else {
+        // Set description as complete & pause
+        const timeout = setTimeout(() => {
+          if (unmountedRef.current) return;
+          setDescriptionComplete(true);
+        }, 300); // Pause after description completes
 
-      return () => clearTimeout(timeout);
+        return () => clearTimeout(timeout);
+      }
     }
-    // Step 3: Type description
-    else if (typedDescription.length < descriptionText.length) {
-      const timeout = setTimeout(() => {
-        if (unmountedRef.current) return;
-        setTypedDescription(
-          descriptionText.substring(0, typedDescription.length + 1),
-        );
-      }, 10); // Faster typing for description
-
-      return () => clearTimeout(timeout);
-    }
-    // Step 4: Set description as complete & pause
-    else if (!descriptionComplete) {
-      const timeout = setTimeout(() => {
-        if (unmountedRef.current) return;
-        setDescriptionComplete(true);
-      }, 300); // Pause after description completes
-
-      return () => clearTimeout(timeout);
-    }
-    // Step 5: Animate stats boxes sequentially
-    else if (activeStatIndex < 2) {
+    // Step 3: Animate stats boxes sequentially
+    else if (descriptionComplete && activeStatIndex < 2) {
       const nextStatIndex = activeStatIndex + 1;
       const currentStat = stats[nextStatIndex];
 
@@ -178,13 +197,14 @@ export const CaseStudiesHero = () => {
 
       return () => clearTimeout(timeout);
     }
-    // Step 6: Type content in stat boxes sequentially
-    else if (activeStatIndex === 2) {
+    // Step 4: Type content in stat boxes sequentially
+    else if (descriptionComplete && activeStatIndex === 2) {
       // Check if all stats are fully typed
       let allStatsComplete = true;
 
       for (let i = 0; i < 3; i++) {
         const currentStat = stats[i];
+        if (!currentStat) continue;
         const fullText = `${currentStat.value} ${currentStat.label}`;
 
         if (typedStats[i]!.length < fullText.length) {
@@ -194,8 +214,9 @@ export const CaseStudiesHero = () => {
           if (
             i === 0 ||
             (i === 1 &&
-              typedStats[0] === `${stats[0].value} ${stats[0].label}`) ||
-            (i === 2 && typedStats[1] === `${stats[1].value} ${stats[1].label}`)
+              typedStats[0] === `${stats[0]?.value} ${stats[0]?.label}`) ||
+            (i === 2 &&
+              typedStats[1] === `${stats[1]?.value} ${stats[1]?.label}`)
           ) {
             const timeout = setTimeout(() => {
               if (unmountedRef.current) return;
@@ -217,6 +238,12 @@ export const CaseStudiesHero = () => {
         const timeout = setTimeout(() => {
           if (unmountedRef.current) return;
           setShowButton(true);
+
+          // Show slider content after the animation sequence
+          setTimeout(() => {
+            if (unmountedRef.current) return;
+            setShowSliderContent(true);
+          }, 500);
         }, 300);
 
         return () => clearTimeout(timeout);
@@ -224,7 +251,6 @@ export const CaseStudiesHero = () => {
     }
   }, [
     isMounted,
-    typedTitle,
     titleComplete,
     typedDescription,
     descriptionComplete,
@@ -235,79 +261,7 @@ export const CaseStudiesHero = () => {
     caseStudiesData?.description,
   ]);
 
-  // Generate improved keyword animations
-  useEffect(() => {
-    if (!isMounted || keywordAnimations.length > 0 || unmountedRef.current)
-      return;
-
-    // Define color palette for keywords
-    const colors = [
-      "#a78bfa", // Light purple
-      "#8b5cf6", // Medium purple
-      "#7c3aed", // Accent purple
-      "#6236FF", // Blue-purple
-      "#4f46e5", // Indigo
-    ];
-
-    // Create animations that flow across the screen in various patterns
-    const generatedAnimations = CASE_STUDY_KEYWORDS.map((keyword, index) => {
-      // Determine starting position - distribute across the edges
-      let initialX, initialY, targetX, targetY;
-      const flowPattern = index % 4; // 0-3 different patterns
-
-      // Size variations
-      const size = `${0.8 + Math.random() * 0.4}em`;
-
-      // Choose color from palette
-      const color = colors[Math.floor(Math.random() * colors.length)];
-
-      // Create different flow patterns
-      switch (flowPattern) {
-        case 0: // Left to right
-          initialX = "-5%";
-          initialY = `${10 + Math.random() * 80}%`;
-          targetX = "105%";
-          targetY = `${10 + Math.random() * 80}%`;
-          break;
-        case 1: // Right to left
-          initialX = "105%";
-          initialY = `${10 + Math.random() * 80}%`;
-          targetX = "-5%";
-          targetY = `${10 + Math.random() * 80}%`;
-          break;
-        case 2: // Top to bottom
-          initialX = `${10 + Math.random() * 80}%`;
-          initialY = "-5%";
-          targetX = `${10 + Math.random() * 80}%`;
-          targetY = "105%";
-          break;
-        case 3: // Bottom to top
-          initialX = `${10 + Math.random() * 80}%`;
-          initialY = "105%";
-          targetX = `${10 + Math.random() * 80}%`;
-          targetY = "-5%";
-          break;
-      }
-
-      return {
-        keyword,
-        initialX,
-        initialY,
-        targetX,
-        targetY,
-        rotation: Math.random() * 20 - 10,
-        opacity: 0.5 + Math.random() * 0.5,
-        size,
-        color,
-        duration: 15 + Math.random() * 15, // Slower movement for better visibility
-        delay: Math.random() * 10, // Staggered start times
-        pathType: Math.floor(Math.random() * 4), // Random path type
-      };
-    });
-
-    setKeywordAnimations(generatedAnimations);
-  }, [isMounted, keywordAnimations.length]);
-
+  // Component initialization
   useEffect(() => {
     setIsMounted(true);
     unmountedRef.current = false;
@@ -318,18 +272,39 @@ export const CaseStudiesHero = () => {
       setShowTerminal(true);
     }, 500);
 
+    return () => {
+      // Mark component as unmounted first
+      unmountedRef.current = true;
+
+      // Clean up timers
+      clearTimeout(terminalTimer);
+
+      // Clean up GSAP context if it exists
+      if (gsapCtxRef.current) {
+        try {
+          gsapCtxRef.current.revert();
+        } catch (e) {
+          // Silently fail - the component is being unmounted anyway
+        }
+        gsapCtxRef.current = null;
+      }
+    };
+  }, []);
+
+  // Separate effect for dot cycling
+  useEffect(() => {
+    if (!isMounted || unmountedRef.current) return;
+
     // Automatically cycle through dots
     const interval = setInterval(() => {
       if (unmountedRef.current) return;
       setActiveDot((prev) => (prev + 1) % totalDots);
-    }, 3000);
+    }, 6000); // Increased from 3000ms to 6000ms for slower cycling
 
     return () => {
-      unmountedRef.current = true;
-      clearTimeout(terminalTimer);
       clearInterval(interval);
     };
-  }, [totalDots]);
+  }, [totalDots, isMounted]);
 
   // Terminal typing effects
   useEffect(() => {
@@ -339,6 +314,7 @@ export const CaseStudiesHero = () => {
 
     if (currentCommand < terminalCommands.length) {
       const command = terminalCommands[currentCommand];
+      if (!command) return; // Ensure command is defined
       if (terminalText.length < command.length) {
         timeout = setTimeout(() => {
           if (unmountedRef.current) return;
@@ -382,191 +358,81 @@ export const CaseStudiesHero = () => {
 
   // GSAP animation for the hero section
   useIsomorphicLayoutEffect(() => {
+    // Only run GSAP initialization after title is complete
     if (
       !headlineRef.current ||
       !isMounted ||
-      gsapCtxRef.current ||
-      unmountedRef.current
+      unmountedRef.current ||
+      !titleComplete
     )
       return;
 
     // Safe import of GSAP
-    import("gsap")
-      .then(({ gsap }) => {
-        if (unmountedRef.current) return;
+    const initGSAP = async () => {
+      try {
+        // Only apply GSAP animations to non-typewriter elements
+        const { gsap } = await import("gsap");
 
-        try {
-          // Direct import of SplitText from gsap-trial since we know we're using trial
-          import("gsap-trial/SplitText")
-            .then((module) => {
-              if (unmountedRef.current) return;
-
-              const SplitText = module.SplitText;
-              gsap.registerPlugin(SplitText);
-
-              const ctx = gsap.context(() => {
-                // Split text into chars for detailed animation
-                if (headlineRef.current && !unmountedRef.current) {
-                  try {
-                    const split = new SplitText(headlineRef.current, {
-                      type: "chars",
-                      charsClass: "char",
-                    });
-
-                    gsap.from(split.chars, {
-                      opacity: 0,
-                      y: 30,
-                      stagger: 0.02,
-                      duration: 0.7,
-                      ease: "back.out(1.7)",
-                      delay: 0.3,
-                    });
-                  } catch (e) {
-                    console.error("SplitText error:", e);
-                    // Fallback animation if SplitText fails
-                    if (!unmountedRef.current && headlineRef.current) {
-                      gsap.from(headlineRef.current, {
-                        opacity: 0,
-                        y: 30,
-                        duration: 0.8,
-                        delay: 0.3,
-                        ease: "power2.out",
-                      });
-                    }
-                  }
-                }
-
-                // Animate description
-                const description = document.querySelector(
-                  ".case-studies-description",
-                );
-                if (description && !unmountedRef.current) {
-                  gsap.from(description, {
-                    opacity: 0,
-                    y: 30,
-                    duration: 0.8,
-                    delay: 0.7,
-                    ease: "power3.out",
-                  });
-                }
-
-                // Animate stats boxes
-                const statsBoxes = document.querySelectorAll(".stats-box");
-                if (statsBoxes.length && !unmountedRef.current) {
-                  gsap.from(statsBoxes, {
-                    opacity: 0,
-                    y: 20,
-                    stagger: 0.15,
-                    duration: 0.8,
-                    delay: 1,
-                    ease: "back.out(1.5)",
-                  });
-                }
-
-                // Animate button
-                const button = document.querySelector(".cta-button");
-                if (button && !unmountedRef.current) {
-                  gsap.from(button, {
-                    opacity: 0,
-                    y: 20,
-                    duration: 0.8,
-                    delay: 1.5,
-                    ease: "back.out(1.5)",
-                  });
-                }
-
-                // Animate the showcase dots
-                const dots = document.querySelectorAll(".showcase-dot");
-                if (dots.length && !unmountedRef.current) {
-                  gsap.from(dots, {
-                    scale: 0,
-                    opacity: 0,
-                    stagger: 0.1,
-                    duration: 0.5,
-                    delay: 1.3,
-                    ease: "back.out(2)",
-                  });
-                }
-              }, heroRef);
-
-              gsapCtxRef.current = ctx;
-            })
-            .catch((e) => {
-              console.error("SplitText import error:", e);
-              // Fallback animation without SplitText
-              if (unmountedRef.current) return;
-
-              const ctx = gsap.context(() => {
-                if (headlineRef.current && !unmountedRef.current) {
-                  gsap.from(headlineRef.current, {
-                    opacity: 0,
-                    y: 30,
-                    duration: 0.8,
-                    delay: 0.3,
-                    ease: "power2.out",
-                  });
-                }
-
-                // Animate description
-                const description = document.querySelector(
-                  ".case-studies-description",
-                );
-                if (description && !unmountedRef.current) {
-                  gsap.from(description, {
-                    opacity: 0,
-                    y: 30,
-                    duration: 0.8,
-                    delay: 0.7,
-                    ease: "power3.out",
-                  });
-                }
-
-                // Animate stats boxes
-                const statsBoxes = document.querySelectorAll(".stats-box");
-                if (statsBoxes.length && !unmountedRef.current) {
-                  gsap.from(statsBoxes, {
-                    opacity: 0,
-                    y: 20,
-                    stagger: 0.15,
-                    duration: 0.8,
-                    delay: 1,
-                    ease: "back.out(1.5)",
-                  });
-                }
-
-                // Animate button
-                const button = document.querySelector(".cta-button");
-                if (button && !unmountedRef.current) {
-                  gsap.from(button, {
-                    opacity: 0,
-                    y: 20,
-                    duration: 0.8,
-                    delay: 1.5,
-                    ease: "back.out(1.5)",
-                  });
-                }
-
-                // Animate the showcase dots
-                const dots = document.querySelectorAll(".showcase-dot");
-                if (dots.length && !unmountedRef.current) {
-                  gsap.from(dots, {
-                    scale: 0,
-                    opacity: 0,
-                    stagger: 0.1,
-                    duration: 0.5,
-                    delay: 1.3,
-                    ease: "back.out(2)",
-                  });
-                }
-              }, heroRef);
-
-              gsapCtxRef.current = ctx;
+        // Create animation context
+        const ctx = gsap.context(() => {
+          // Animate stats boxes
+          const statsBoxes = document.querySelectorAll(".stats-box");
+          if (statsBoxes.length && !unmountedRef.current) {
+            gsap.from(statsBoxes, {
+              opacity: 0,
+              y: 20,
+              stagger: 0.15,
+              duration: 0.8,
+              delay: 0.2,
+              ease: "back.out(1.5)",
             });
-        } catch (e) {
-          console.error("GSAP error:", e);
-        }
-      })
-      .catch((e) => console.error("GSAP import error:", e));
+          }
+
+          // Animate button
+          const button = document.querySelector(".cta-button");
+          if (button && !unmountedRef.current) {
+            gsap.from(button, {
+              opacity: 0,
+              y: 20,
+              duration: 0.8,
+              delay: 0.5,
+              ease: "back.out(1.5)",
+            });
+          }
+
+          // Animate the showcase dots
+          const dots = document.querySelectorAll(".showcase-dot");
+          if (dots.length && !unmountedRef.current) {
+            gsap.from(dots, {
+              scale: 0,
+              opacity: 0,
+              stagger: 0.1,
+              duration: 0.5,
+              delay: 0.3,
+              ease: "back.out(2)",
+            });
+          }
+
+          // Animate case study slider section
+          const sliderContent = document.querySelector(".case-slider-content");
+          if (sliderContent && !unmountedRef.current) {
+            gsap.from(sliderContent, {
+              opacity: 0,
+              y: 30,
+              duration: 0.8,
+              delay: 0.8,
+              ease: "power3.out",
+            });
+          }
+        }, heroRef);
+
+        gsapCtxRef.current = ctx;
+      } catch (error) {
+        console.error("GSAP initialization error:", error);
+      }
+    };
+
+    initGSAP();
 
     return () => {
       if (gsapCtxRef.current) {
@@ -574,112 +440,60 @@ export const CaseStudiesHero = () => {
         gsapCtxRef.current = null;
       }
     };
-  }, [isMounted, language]);
+  }, [isMounted, titleComplete]);
 
-  // 3D text animations
-  const textVariants = {
-    hidden: {
+  // Update direction when active dot changes
+  useEffect(() => {
+    if (!isMounted) return;
+    setDirection((prev) => {
+      // Determine if we went forward or backward
+      if (prev === activeDot) return 0;
+
+      // Handle wrap-around cases
+      if (prev === totalDots - 1 && activeDot === 0) return 1;
+      if (prev === 0 && activeDot === totalDots - 1) return -1;
+
+      return activeDot > prev ? 1 : -1;
+    });
+  }, [activeDot, totalDots, isMounted]);
+
+  // Current active case study
+  const activeCaseStudy = caseStudiesData?.cases?.[activeDot];
+
+  // Slider animation variants
+  const sliderVariants = {
+    enter: (direction: number) => ({
+      x: direction > 0 ? 300 : -300,
       opacity: 0,
-      y: 20,
-    },
-    visible: {
+    }),
+    center: {
+      x: 0,
       opacity: 1,
-      y: 0,
       transition: {
-        duration: 0.8,
-        ease: "easeOut",
+        x: { type: "spring", stiffness: 200, damping: 30, duration: 0.8 },
+        opacity: { duration: 0.7 },
       },
     },
+    exit: (direction: number) => ({
+      x: direction < 0 ? 300 : -300,
+      opacity: 0,
+      transition: {
+        x: { type: "spring", stiffness: 200, damping: 30, duration: 0.8 },
+        opacity: { duration: 0.7 },
+      },
+    }),
   };
 
-  // Pre-built 3D cubes (client-side only)
-  const cubePositions = [
-    { id: "cube-1", x: "15%", y: "20%", scale: 1.2, delay: 0 },
-    { id: "cube-2", x: "75%", y: "15%", scale: 1.5, delay: 0.3 },
-    { id: "cube-3", x: "35%", y: "75%", scale: 0.8, delay: 0.6 },
-    { id: "cube-4", x: "85%", y: "65%", scale: 1.3, delay: 0.9 },
-    { id: "cube-5", x: "25%", y: "35%", scale: 1.0, delay: 1.2 },
-    { id: "cube-6", x: "65%", y: "50%", scale: 1.4, delay: 1.5 },
-    { id: "cube-7", x: "10%", y: "60%", scale: 0.9, delay: 1.8 },
-    { id: "cube-8", x: "50%", y: "80%", scale: 1.1, delay: 2.1 },
-  ];
-
-  // Helper function to get path for floating keywords
-  const getPath = (item: any) => {
-    switch (item.pathType) {
-      case 1: // Curve up
-        return {
-          path: {
-            x: [
-              item.initialX,
-              `calc(${item.initialX} + (${item.targetX} - ${item.initialX}) * 0.5)`,
-              item.targetX,
-            ],
-            y: [item.initialY, `calc(${item.initialY} - 20%)`, item.targetY],
-          },
-          transition: {
-            duration: item.duration,
-            repeat: Infinity,
-            ease: "linear",
-            delay: item.delay,
-          },
-        };
-      case 2: // Curve down
-        return {
-          path: {
-            x: [
-              item.initialX,
-              `calc(${item.initialX} + (${item.targetX} - ${item.initialX}) * 0.5)`,
-              item.targetX,
-            ],
-            y: [item.initialY, `calc(${item.initialY} + 20%)`, item.targetY],
-          },
-          transition: {
-            duration: item.duration,
-            repeat: Infinity,
-            ease: "linear",
-            delay: item.delay,
-          },
-        };
-      case 3: // Zigzag
-        return {
-          path: {
-            x: [
-              item.initialX,
-              `calc(${item.initialX} + (${item.targetX} - ${item.initialX}) * 0.25)`,
-              `calc(${item.initialX} + (${item.targetX} - ${item.initialX}) * 0.5)`,
-              `calc(${item.initialX} + (${item.targetX} - ${item.initialX}) * 0.75)`,
-              item.targetX,
-            ],
-            y: [
-              item.initialY,
-              `calc(${item.initialY} - 10%)`,
-              `calc(${item.initialY} + 10%)`,
-              `calc(${item.initialY} - 10%)`,
-              item.targetY,
-            ],
-          },
-          transition: {
-            duration: item.duration,
-            repeat: Infinity,
-            ease: "linear",
-            delay: item.delay,
-          },
-        };
-      default: // Straight
-        return {
-          path: {
-            x: [item.initialX, item.targetX],
-            y: [item.initialY, item.targetY],
-          },
-          transition: {
-            duration: item.duration,
-            repeat: Infinity,
-            ease: "linear",
-            delay: item.delay,
-          },
-        };
-    }
+  // Helper function to create URL-friendly slugs
+  const createSlug = (text?: string): string => {
+    if (!text) return "";
+    return text
+      .toLowerCase()
+      .replace(/\s+/g, "-")
+      .replace(/[^\w-]+/g, "")
+      .replace(/--+/g, "-")
+      .replace(/^-+/, "")
+      .replace(/-+$/, "");
   };
 
   return (
@@ -730,229 +544,6 @@ export const CaseStudiesHero = () => {
               <rect width="100%" height="100%" fill="url(#grid)" />
             </svg>
           </div>
-
-          {/* Tech keywords floating across the scene with varied paths */}
-          {isMounted && keywordAnimations.length > 0 && (
-            <div className="pointer-events-none absolute inset-0 h-full w-full overflow-hidden">
-              {keywordAnimations.map((item, idx) => {
-                const pathAnimation = getPath(item);
-
-                return (
-                  <motion.div
-                    key={`${item.keyword}-${idx}`}
-                    className="absolute font-mono font-bold"
-                    style={{
-                      x: item.initialX,
-                      y: item.initialY,
-                      rotateZ: item.rotation,
-                      opacity: item.opacity,
-                      color: item.color,
-                      fontSize: item.size,
-                      textShadow: "0 0 8px rgba(124, 58, 237, 0.8)", // Enhanced glow effect
-                    }}
-                    animate={pathAnimation.path}
-                    transition={pathAnimation.transition}
-                  >
-                    {item.keyword}
-                  </motion.div>
-                );
-              })}
-            </div>
-          )}
-
-          {/* Connection lines between cubes - matching image */}
-          {isMounted && (
-            <svg
-              className="absolute inset-0 h-full w-full opacity-50"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <line
-                x1="20%"
-                y1="20%"
-                x2="50%"
-                y2="40%"
-                stroke="#6236FF"
-                strokeWidth="0.5"
-              />
-              <line
-                x1="50%"
-                y1="40%"
-                x2="80%"
-                y2="30%"
-                stroke="#6236FF"
-                strokeWidth="0.5"
-              />
-              <line
-                x1="20%"
-                y1="70%"
-                x2="50%"
-                y2="40%"
-                stroke="#6236FF"
-                strokeWidth="0.5"
-              />
-              <line
-                x1="80%"
-                y1="60%"
-                x2="50%"
-                y2="40%"
-                stroke="#6236FF"
-                strokeWidth="0.5"
-              />
-              <line
-                x1="50%"
-                y1="80%"
-                x2="20%"
-                y2="70%"
-                stroke="#6236FF"
-                strokeWidth="0.5"
-              />
-              <line
-                x1="80%"
-                y1="60%"
-                x2="50%"
-                y2="80%"
-                stroke="#6236FF"
-                strokeWidth="0.5"
-              />
-            </svg>
-          )}
-
-          {/* Animated 3D cubes - matching image style */}
-          {isMounted && (
-            <div className="absolute inset-0 overflow-hidden">
-              {cubePositions.map((cube) => (
-                <motion.div
-                  key={cube.id}
-                  className="absolute h-24 w-24 opacity-90"
-                  style={{
-                    left: cube.x,
-                    top: cube.y,
-                    scale: cube.scale,
-                  }}
-                  initial={{ opacity: 0, rotateX: 0, rotateY: 0, rotateZ: 0 }}
-                  animate={{
-                    opacity: 1,
-                    rotateX: [0, 360],
-                    rotateY: [0, 360],
-                    rotateZ: [0, 360],
-                  }}
-                  transition={{
-                    opacity: { duration: 1, delay: cube.delay },
-                    rotateX: { duration: 30, repeat: Infinity, ease: "linear" },
-                    rotateY: { duration: 40, repeat: Infinity, ease: "linear" },
-                    rotateZ: { duration: 50, repeat: Infinity, ease: "linear" },
-                  }}
-                >
-                  {/* 3D cube/hexagon matching the image */}
-                  <svg
-                    viewBox="0 0 100 100"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-full w-full"
-                  >
-                    <path
-                      d="M50 5L90 30V70L50 95L10 70V30L50 5Z"
-                      fill="#0F0F2D"
-                      stroke="#6236FF"
-                      strokeWidth="1"
-                    />
-                    <path
-                      d="M50 5V50M50 50V95M50 50L10 30M50 50L90 30"
-                      stroke="#6236FF"
-                      strokeWidth="0.5"
-                      opacity="0.8"
-                    />
-                    <rect
-                      x="45"
-                      y="45"
-                      width="10"
-                      height="10"
-                      fill="#6236FF"
-                      opacity="0.4"
-                    />
-                  </svg>
-                </motion.div>
-              ))}
-            </div>
-          )}
-
-          {/* Tech circuit lines - with higher contrast/visibility */}
-          <motion.div
-            className="absolute left-4 top-0 h-full w-px bg-purple-500/50"
-            animate={{
-              opacity: [0.3, 0.7, 0.3],
-            }}
-            transition={{
-              duration: 4,
-              repeat: Infinity,
-              ease: "easeInOut",
-            }}
-          >
-            <motion.div
-              className="absolute -right-1 top-1/4 h-2 w-2 rounded-full bg-purple-400"
-              animate={{
-                opacity: [0.5, 1, 0.5],
-                scale: [1, 1.2, 1],
-              }}
-              transition={{
-                duration: 2,
-                repeat: Infinity,
-                ease: "easeInOut",
-              }}
-            />
-            <motion.div
-              className="absolute -right-1 top-2/3 h-2 w-2 rounded-full bg-purple-400"
-              animate={{
-                opacity: [0.5, 1, 0.5],
-                scale: [1, 1.2, 1],
-              }}
-              transition={{
-                duration: 2,
-                repeat: Infinity,
-                ease: "easeInOut",
-                delay: 1,
-              }}
-            />
-          </motion.div>
-
-          <motion.div
-            className="absolute right-4 top-0 h-full w-px bg-purple-500/50"
-            animate={{
-              opacity: [0.3, 0.7, 0.3],
-            }}
-            transition={{
-              duration: 4,
-              repeat: Infinity,
-              ease: "easeInOut",
-            }}
-          >
-            <motion.div
-              className="absolute -left-1 top-1/3 h-2 w-2 rounded-full bg-purple-400"
-              animate={{
-                opacity: [0.5, 1, 0.5],
-                scale: [1, 1.2, 1],
-              }}
-              transition={{
-                duration: 2,
-                repeat: Infinity,
-                ease: "easeInOut",
-                delay: 0.5,
-              }}
-            />
-            <motion.div
-              className="absolute -left-1 top-3/4 h-2 w-2 rounded-full bg-purple-400"
-              animate={{
-                opacity: [0.5, 1, 0.5],
-                scale: [1, 1.2, 1],
-              }}
-              transition={{
-                duration: 2,
-                repeat: Infinity,
-                ease: "easeInOut",
-                delay: 1.5,
-              }}
-            />
-          </motion.div>
         </div>
 
         {/* Main content */}
@@ -1003,7 +594,7 @@ export const CaseStudiesHero = () => {
               <span
                 className={`font-mono uppercase tracking-widest text-purple-500 ${silkscreen.className}`}
               >
-                RECENT WORK
+                {caseStudiesData?.subtitle || ""}
               </span>
               <div className="ml-3 h-px w-16 bg-purple-500"></div>
             </motion.div>
@@ -1016,11 +607,10 @@ export const CaseStudiesHero = () => {
                   "text-center text-4xl font-bold tracking-wider sm:text-left sm:text-5xl md:text-6xl lg:text-6xl",
                   silkscreen.className,
                 )}
-                variants={textVariants}
-                initial="hidden"
-                animate={controls}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.8, ease: "easeOut" }}
                 style={{
-                  transformStyle: "preserve-3d",
                   color: "white",
                   letterSpacing: "0.05em",
                   lineHeight: 1.1,
@@ -1028,13 +618,14 @@ export const CaseStudiesHero = () => {
                 }}
               >
                 {typedTitle}
-                {typedTitle.length < "FEATURED CASE STUDIES".length && (
-                  <motion.span
-                    animate={{ opacity: [1, 0, 1] }}
-                    transition={{ duration: 0.8, repeat: Infinity }}
-                    className="ml-1 inline-block h-10 w-2 bg-purple-500"
-                  />
-                )}
+                {caseStudiesData?.title &&
+                  typedTitle.length < caseStudiesData.title.length && (
+                    <motion.span
+                      animate={{ opacity: [1, 0, 1] }}
+                      transition={{ duration: 0.8, repeat: Infinity }}
+                      className="ml-1 inline-block h-10 w-2 bg-purple-500"
+                    />
+                  )}
               </motion.h1>
             </div>
 
@@ -1097,6 +688,83 @@ export const CaseStudiesHero = () => {
               ))}
             </div>
 
+            {/* Case Study Content Slider */}
+            {showSliderContent && (
+              <div className="case-slider-content relative mb-12 overflow-hidden">
+                <div className="h-80 w-full">
+                  <AnimatePresence
+                    initial={false}
+                    custom={direction}
+                    mode="wait"
+                  >
+                    <motion.div
+                      key={activeDot}
+                      custom={direction}
+                      variants={sliderVariants}
+                      initial="enter"
+                      animate="center"
+                      exit="exit"
+                      className="absolute inset-0 flex flex-col justify-between rounded-xl border border-purple-500/30 bg-[#0A0A2A]/70 p-6 backdrop-blur-sm"
+                    >
+                      {activeCaseStudy ? (
+                        <>
+                          <div>
+                            <div className="mb-2 flex items-center">
+                              <div className="h-2 w-8 rounded-full bg-gradient-to-r from-blue-600 to-purple-600"></div>
+                              <span className="ml-2 font-mono text-xs uppercase tracking-wider text-purple-400">
+                                {activeCaseStudy.tags?.[0] || ""}
+                              </span>
+                            </div>
+                            <h3 className="mb-3 text-2xl font-bold text-white">
+                              {activeCaseStudy.title || ""}
+                            </h3>
+                            <p className="mb-4 text-gray-300">
+                              {activeCaseStudy.description || ""}
+                            </p>
+
+                            {/* Display tags as metrics */}
+                            <div className="mt-4 grid grid-cols-2 gap-4 md:grid-cols-3">
+                              {(activeCaseStudy.tags || [])
+                                .slice(0, 3)
+                                .map((tag, idx) => (
+                                  <div
+                                    key={idx}
+                                    className="rounded-lg bg-purple-900/20 p-3"
+                                  >
+                                    <div className="text-xs text-purple-300">
+                                      {tag}
+                                    </div>
+                                  </div>
+                                ))}
+                            </div>
+                          </div>
+
+                          <div className="flex justify-between">
+                            <div className="font-mono text-xs text-purple-400">
+                              {activeCaseStudy.client || ""}
+                            </div>
+                            <Button
+                              className="px-3 py-1 text-sm"
+                              variant="outline"
+                              href={`/case-studies/${activeCaseStudy.id ? activeCaseStudy.id : createSlug(activeCaseStudy.title)}`}
+                            >
+                              {caseStudiesData?.viewCaseStudy || ""}
+                            </Button>
+                          </div>
+                        </>
+                      ) : (
+                        <div className="flex h-full items-center justify-center">
+                          <p className="text-gray-400">
+                            No case study information available.
+                          </p>
+                        </div>
+                      )}
+                    </motion.div>
+                  </AnimatePresence>
+                </div>
+              </div>
+            )}
+
             {/* Interactive showcase dots */}
             <div className="mb-10 flex justify-center gap-4 sm:justify-start">
               {Array(totalDots)
@@ -1110,7 +778,12 @@ export const CaseStudiesHero = () => {
                         ? "bg-purple-500"
                         : "bg-gray-600 hover:bg-gray-400",
                     )}
-                    onClick={() => setActiveDot(index)}
+                    onClick={() => {
+                      // Set direction based on clicked dot compared to current
+                      const newDirection = index > activeDot ? 1 : -1;
+                      setDirection(newDirection);
+                      setActiveDot(index);
+                    }}
                     whileTap={{ scale: 0.9 }}
                     initial={{ opacity: 0, scale: 0 }}
                     animate={{ opacity: 1, scale: 1 }}
@@ -1158,8 +831,7 @@ export const CaseStudiesHero = () => {
                 } as any)}
               >
                 <span className="group relative inline-flex items-center">
-                  {caseStudiesData?.viewAllCaseStudies ||
-                    "View All Case Studies"}
+                  {caseStudiesData?.viewAllCaseStudies || ""}
                   <svg
                     className="ml-2 h-5 w-5 transition-transform duration-300 group-hover:translate-x-1"
                     fill="none"
@@ -1199,3 +871,5 @@ export const CaseStudiesHero = () => {
     </>
   );
 };
+
+export default CaseStudiesHero;

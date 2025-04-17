@@ -1,11 +1,14 @@
 "use client";
 
-import { CaseStudyDetail } from "../../../components/case-studies/CaseStudiesDetail";
+import { use } from "react";
+import { CaseStudyDetail } from "../../../components/case-studies/study/CaseStudiesDetail";
 
 export default function CaseStudyDetailPage({
   params,
 }: {
-  params: { slug: string };
+  params: Promise<{ slug: string }>;
 }) {
-  return <CaseStudyDetail slug={params.slug} />;
+  // When Next.js changes params to be a Promise
+  const resolvedParams = use(params);
+  return <CaseStudyDetail slug={resolvedParams.slug} />;
 }
