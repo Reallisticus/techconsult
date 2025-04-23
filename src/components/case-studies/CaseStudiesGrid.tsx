@@ -13,6 +13,7 @@ import { cn } from "~/lib/utils";
 import { Button } from "~/components/ui/button";
 import Link from "next/link";
 import Image from "next/image";
+import { TagFilter } from "./TagFilter"; // Import the new TagFilter component
 
 // Define interface for case study data
 interface CaseStudyTranslations {
@@ -48,6 +49,21 @@ export const CaseStudiesGrid = () => {
   // Extract all unique tags from case studies
   const allTags = Array.from(
     new Set(cases.flatMap((caseItem) => caseItem.tags || [])),
+  );
+
+  // Calculate tag frequencies to determine popular tags
+  const tagFrequency = allTags.reduce(
+    (acc, tag) => {
+      const count = cases.filter((cs) => cs.tags?.includes(tag)).length;
+      acc[tag] = count;
+      return acc;
+    },
+    {} as Record<string, number>,
+  );
+
+  // Sort tags by frequency for the popular tags feature
+  const sortedTags = [...allTags].sort(
+    (a, b) => (tagFrequency[b] || 0) - (tagFrequency[a] || 0),
   );
 
   // Filter case studies by tag
@@ -228,40 +244,14 @@ export const CaseStudiesGrid = () => {
           </div>
         </ScrollReveal>
 
-        {/* Filters */}
+        {/* New Tag Filter Component */}
         <ScrollReveal direction="up" threshold={0.1}>
-          <div className="scrollbar-hide mb-12 overflow-x-auto">
-            <div className="flex min-w-max justify-center space-x-4 pb-2">
-              <motion.button
-                className={cn(
-                  "rounded-full px-4 py-2 text-sm font-medium transition-all duration-300",
-                  activeFilter === "all"
-                    ? "bg-purple-600 text-white shadow-lg shadow-purple-600/20"
-                    : "bg-[#0A0A2A]/70 text-neutral-300 hover:bg-[#0A0A2A] hover:text-white",
-                )}
-                onClick={() => handleFilterChange("all")}
-                whileTap={{ scale: 0.97 }}
-              >
-                {caseStudiesData?.allProjects || "All Projects"}
-              </motion.button>
-
-              {allTags.map((tag) => (
-                <motion.button
-                  key={tag}
-                  className={cn(
-                    "rounded-full px-4 py-2 text-sm font-medium transition-all duration-300",
-                    activeFilter === tag.toLowerCase()
-                      ? "bg-purple-600 text-white shadow-lg shadow-purple-600/20"
-                      : "bg-[#0A0A2A]/70 text-neutral-300 hover:bg-[#0A0A2A] hover:text-white",
-                  )}
-                  onClick={() => handleFilterChange(tag.toLowerCase())}
-                  whileTap={{ scale: 0.97 }}
-                >
-                  {tag}
-                </motion.button>
-              ))}
-            </div>
-          </div>
+          <TagFilter
+            tags={sortedTags}
+            activeFilter={activeFilter}
+            onFilterChange={handleFilterChange}
+            allProjectsLabel={caseStudiesData?.allProjects || "All Projects"}
+          />
         </ScrollReveal>
 
         {/* Grid of case studies with staggered animation */}
@@ -350,10 +340,10 @@ export const CaseStudiesGrid = () => {
                               {caseItem.description}
                             </p>
 
-                            {/* Tags */}
+                            {/* Tags - Limited to 3 per case study card */}
                             {caseItem.tags && caseItem.tags.length > 0 && (
                               <div className="mb-4 flex flex-wrap gap-2">
-                                {caseItem.tags.map((tag, i) => (
+                                {caseItem.tags.slice(0, 3).map((tag, i) => (
                                   <span
                                     key={i}
                                     className="rounded-full bg-purple-900/20 px-2 py-1 text-xs text-purple-300"
@@ -361,6 +351,11 @@ export const CaseStudiesGrid = () => {
                                     {tag}
                                   </span>
                                 ))}
+                                {caseItem.tags.length > 3 && (
+                                  <span className="rounded-full bg-purple-900/10 px-2 py-1 text-xs text-purple-300/70">
+                                    +{caseItem.tags.length - 3}
+                                  </span>
+                                )}
                               </div>
                             )}
 
