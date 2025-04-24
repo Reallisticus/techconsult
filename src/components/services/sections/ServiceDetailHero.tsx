@@ -75,42 +75,6 @@ export const ServiceDetailHero = ({ service }: ServiceDetailHeroProps) => {
       transition={{ duration: 0.8 }}
     >
       {/* Animated background */}
-      <motion.div className="absolute inset-0 -z-20" style={{ y: backgroundY }}>
-        {/* Radial gradient background based on service color */}
-        <div
-          className="absolute inset-0 -z-10"
-          style={{
-            background: `radial-gradient(circle at 30% 30%, ${service.color}20 0%, rgba(0, 0, 0, 0) 70%)`,
-          }}
-        />
-
-        {/* Grid pattern overlay */}
-        <div className="absolute inset-0 -z-10 opacity-[0.07]">
-          <svg
-            className="h-full w-full"
-            xmlns="http://www.w3.org/2000/svg"
-            width="100%"
-            height="100%"
-          >
-            <defs>
-              <pattern
-                id="grid-pattern"
-                width="40"
-                height="40"
-                patternUnits="userSpaceOnUse"
-              >
-                <path
-                  d="M 40 0 L 0 0 0 40"
-                  fill="none"
-                  stroke={service.color}
-                  strokeWidth="0.5"
-                />
-              </pattern>
-            </defs>
-            <rect width="100%" height="100%" fill="url(#grid-pattern)" />
-          </svg>
-        </div>
-      </motion.div>
 
       {/* Animated border lines */}
       <div className="absolute left-0 top-0 h-16 w-px bg-gradient-to-b from-transparent via-purple-500 to-transparent opacity-50" />
