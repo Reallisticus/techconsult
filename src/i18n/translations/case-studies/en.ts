@@ -6,11 +6,8 @@ export const caseStudiesEN = {
     "Discover how we've helped businesses transform their operations and achieve remarkable results through strategic technology implementations.",
   viewCaseStudy: "View Case Study",
   viewAllCaseStudies: "View All Case Studies",
-  // For NDA disclaimer
   ndaDisclaimer:
     "Not all completed projects are displayed due to confidentiality agreements and NDAs.",
-
-  // For case-study detail page
   projectOverview: "Project Overview",
   clientLabel: "Client",
   industryLabel: "Industry",
@@ -33,17 +30,14 @@ export const caseStudiesEN = {
     description:
       "The case study you're looking for doesn't exist or has been removed.",
   },
+  more: "more",
   viewAllProjects: "Explore our work",
   allProjects: "All Projects",
-
-  // Stats section
   stats: [
     { value: "100+", label: "Completed Projects" },
     { value: "95%", label: "Client Satisfaction" },
     { value: "40%", label: "Avg. Efficiency Gain" },
   ],
-
-  // Case Studies
   cases: [
     {
       id: "enterprise-transformation",
@@ -311,7 +305,7 @@ export const caseStudiesEN = {
         "Small Business Marketing",
         "Beauty Industry",
         "Appointment Booking",
-      ], // Adjusted tags for beauty
+      ],
       challenge:
         "Reni Style, specializing in female beauty procedures and cosmetics, had no online presence. This meant potential clients searching online could not find their services, limiting their customer base primarily to offline referrals and hindering growth opportunities.",
       solution:

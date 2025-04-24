@@ -348,8 +348,9 @@ export const CaseStudyHero = ({
                 </motion.p>
 
                 {/* Tags with improved styling */}
+                {/* Tags with improved styling and overflow control */}
                 <div className="mb-2 flex flex-wrap justify-center gap-3 sm:justify-start">
-                  {caseStudy.tags?.map((tag, i) => (
+                  {caseStudy.tags?.slice(0, 4).map((tag, i) => (
                     <motion.span
                       key={i}
                       className="rounded-full border border-purple-500/20 bg-[#0A0A2A]/70 px-4 py-1.5 text-sm font-medium text-purple-300 backdrop-blur-sm"
@@ -365,6 +366,35 @@ export const CaseStudyHero = ({
                       {tag}
                     </motion.span>
                   ))}
+
+                  {/* Show "+N more" indicator if there are additional tags */}
+                  {caseStudy.tags && caseStudy.tags.length > 4 && (
+                    <motion.span
+                      className="group relative cursor-pointer rounded-full border border-purple-500/20 bg-[#0A0A2A]/70 px-4 py-1.5 text-sm font-medium text-purple-300 backdrop-blur-sm"
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.5, delay: 0.3 + 4 * 0.1 }}
+                      whileHover={{
+                        scale: 1.05,
+                        backgroundColor: "rgba(124, 58, 237, 0.2)",
+                        transition: { duration: 0.2 },
+                      }}
+                    >
+                      +{caseStudy.tags.length - 4}{" "}
+                      {translations?.more || "more"}
+                      {/* Tooltip showing all tags on hover */}
+                      <div className="absolute -left-2 bottom-full mb-2 hidden w-max max-w-[220px] flex-wrap gap-2 rounded-lg border border-purple-500/20 bg-[#0A0A2A]/90 p-3 opacity-0 shadow-lg backdrop-blur-md transition-opacity duration-200 group-hover:flex group-hover:opacity-100">
+                        {caseStudy.tags.map((tag, i) => (
+                          <span
+                            key={i}
+                            className="rounded-full border border-purple-500/20 bg-[#0A0A2A]/70 px-3 py-1 text-xs font-medium text-purple-300"
+                          >
+                            {tag}
+                          </span>
+                        ))}
+                      </div>
+                    </motion.span>
+                  )}
                 </div>
               </motion.div>
 

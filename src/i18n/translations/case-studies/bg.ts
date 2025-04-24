@@ -32,6 +32,7 @@ export const caseStudiesBG = {
     title: "Проектът не е намерен",
     description: "Проектът, който търсите, не съществува или е премахнат.",
   },
+  more: "допълнителни",
   viewAllProjects: "Разгледайте нашата работа",
   allProjects: "Всички проекти",
 

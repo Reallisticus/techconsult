@@ -48,6 +48,7 @@ export interface CaseStudyTranslations {
     title?: string;
     description?: string;
   };
+  more: string;
 }
 
 export interface CaseStudyType {
