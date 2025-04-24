@@ -12,6 +12,7 @@ import {
 } from "react";
 import { HeroBackground } from "~/components/utils/HeroBackground";
 import { useSmoothScroll } from "./SmoothScrollProvider";
+import { useDebouncedCallback } from "use-debounce";
 
 interface BackgroundContextType {
   backgroundRef: React.RefObject<HTMLDivElement> | null;
@@ -31,14 +32,44 @@ export const BackgroundProvider = ({ children }: BackgroundProviderProps) => {
   const backgroundRef = useRef<HTMLDivElement>(null);
   const [mounted, setMounted] = useState(false);
   const { scroll } = useSmoothScroll();
-
-  // Keep track of the last applied filter value to avoid unnecessary DOM updates
   const lastFilterValue = useRef<number>(1);
-  // Use requestAnimationFrame for smoother scrolling
   const rafId = useRef<number | null>(null);
-  // Track if user is scrolling
   const isScrolling = useRef(false);
   const scrollTimeoutId = useRef<NodeJS.Timeout | null>(null);
+
+  const handleScrollStop = useDebouncedCallback(() => {
+    isScrolling.current = false;
+  }, 150);
+
+  const updateBackgroundFilter = useDebouncedCallback(
+    () => {
+      if (!backgroundRef.current || rafId.current) return;
+
+      // Set scrolling state
+      isScrolling.current = true;
+      handleScrollStop();
+
+      rafId.current = requestAnimationFrame(() => {
+        if (backgroundRef.current) {
+          const maxScrollDepth = Math.min(
+            document.body.scrollHeight * 0.5,
+            3000,
+          );
+          const scrollProgress = Math.min(1, scroll.current / maxScrollDepth);
+          const newBrightness = Math.max(0.7, 1 - scrollProgress * 0.3);
+          const roundedBrightness = Math.round(newBrightness * 100) / 100;
+
+          if (Math.abs(roundedBrightness - lastFilterValue.current) >= 0.01) {
+            backgroundRef.current.style.filter = `brightness(${roundedBrightness})`;
+            lastFilterValue.current = roundedBrightness;
+          }
+        }
+        rafId.current = null;
+      });
+    },
+    10,
+    { maxWait: 30 },
+  );
 
   useEffect(() => {
     setMounted(true);
@@ -49,81 +80,26 @@ export const BackgroundProvider = ({ children }: BackgroundProviderProps) => {
       document.body.style.background = "transparent";
     }
 
-    // Apply subtle effects based on scroll position using requestAnimationFrame
-    const handleScroll = () => {
-      if (rafId.current) {
-        cancelAnimationFrame(rafId.current);
-      }
-
-      // Mark as scrolling
-      isScrolling.current = true;
-
-      // Clear previous timeout
-      if (scrollTimeoutId.current) {
-        clearTimeout(scrollTimeoutId.current);
-      }
-
-      // Set timeout to mark when scrolling stops
-      scrollTimeoutId.current = setTimeout(() => {
-        isScrolling.current = false;
-      }, 150);
-
-      rafId.current = requestAnimationFrame(() => {
-        if (backgroundRef.current) {
-          // Calculate scroll progress
-          const maxScrollDepth = Math.min(
-            document.body.scrollHeight * 0.5,
-            3000,
-          );
-          const scrollProgress = Math.min(1, scroll.current / maxScrollDepth);
-
-          // Calculate new brightness with less precision to avoid small changes
-          const newBrightness = Math.max(0.7, 1 - scrollProgress * 0.3);
-          // Only update the DOM if the change is significant (more than 1%)
-          const roundedBrightness = Math.round(newBrightness * 100) / 100;
-
-          if (Math.abs(roundedBrightness - lastFilterValue.current) >= 0.01) {
-            backgroundRef.current.style.filter = `brightness(${roundedBrightness})`;
-            lastFilterValue.current = roundedBrightness;
-          }
-        }
-        rafId.current = null;
-      });
-    };
-
-    // Throttled scroll listener
-    const throttledScrollHandler = () => {
-      if (!rafId.current) {
-        handleScroll();
-      }
-    };
-
-    // Listen for scroll events with passive flag for performance
-    window.addEventListener("scroll", throttledScrollHandler, {
+    // Use the pre-defined debounced function
+    window.addEventListener("scroll", updateBackgroundFilter, {
       passive: true,
     });
 
     return () => {
       setMounted(false);
-      window.removeEventListener("scroll", throttledScrollHandler);
+      window.removeEventListener("scroll", updateBackgroundFilter);
+      updateBackgroundFilter.cancel();
+      handleScrollStop.cancel();
 
       if (rafId.current) {
         cancelAnimationFrame(rafId.current);
         rafId.current = null;
       }
-
-      if (scrollTimeoutId.current) {
-        clearTimeout(scrollTimeoutId.current);
-        scrollTimeoutId.current = null;
-      }
     };
-  }, [scroll]);
+  }, [scroll, updateBackgroundFilter, handleScrollStop]);
 
   // Memoize the context value to prevent unnecessary re-renders
   const contextValue = useMemo(() => ({ backgroundRef }), []);
-
-  // Control rendering quality based on scroll state
-  const backgroundQuality = isScrolling.current ? "reduced" : "full";
 
   return (
     <BackgroundContext.Provider value={contextValue}>

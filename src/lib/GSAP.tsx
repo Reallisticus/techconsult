@@ -13,23 +13,16 @@ export const initGSAP = () => {
         gsap.registerPlugin(ScrollTrigger);
       });
 
-      // Register any other plugins here
-      try {
-        import("gsap-trial/SplitText")
-          .then(({ SplitText }) => {
-            gsap.registerPlugin(SplitText);
-          })
-          .catch(() => {
-            // SplitText might not be available if using standard GSAP
-            console.info(
-              "SplitText plugin not available, using standard animations",
-            );
-          });
-      } catch (e) {
-        console.info(
-          "SplitText plugin not available, using standard animations",
-        );
-      }
+      // Simplified error handling
+      import("gsap-trial/SplitText")
+        .then(({ SplitText }) => {
+          gsap.registerPlugin(SplitText);
+        })
+        .catch(() => {
+          console.info(
+            "SplitText plugin not available, using standard animations",
+          );
+        });
     });
   }
 };

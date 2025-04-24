@@ -192,49 +192,56 @@ export function SmoothScrollProvider({
   useEffect(() => {
     if (!lenis || typeof window === "undefined") return;
 
-    // Register GSAP ScrollTrigger
-    gsap.registerPlugin(ScrollTrigger);
+    // Import and initialize GSAP with the utility first
+    import("~/lib/GSAP").then(({ initGSAP }) => {
+      initGSAP();
 
-    // Update ScrollTrigger on scroll
-    const scrollTriggerUpdate = throttle(() => {
-      ScrollTrigger.update();
-    }, 20); // 50fps max update rate for performance
+      // Now register ScrollTrigger (will be a no-op if already registered by initGSAP)
+      gsap.registerPlugin(ScrollTrigger);
 
-    lenis.on("scroll", scrollTriggerUpdate);
+      // Continue with your existing code
+      const scrollTriggerUpdate = throttle(() => {
+        ScrollTrigger.update();
+      }, 20); // 50fps max update rate for performance
 
-    // Configure ScrollTrigger proxy
-    ScrollTrigger.scrollerProxy(document.documentElement, {
-      scrollTop(value) {
-        if (arguments.length && lenis) {
-          lenis.scrollTo(value as number, { immediate: true });
-        }
-        return lenis?.scroll || 0;
-      },
-      getBoundingClientRect() {
-        return {
-          top: 0,
-          left: 0,
-          width: window.innerWidth,
-          height: window.innerHeight,
-        };
-      },
-      pinType: document.documentElement.style.transform ? "transform" : "fixed",
+      lenis.on("scroll", scrollTriggerUpdate);
+
+      // Configure ScrollTrigger proxy
+      ScrollTrigger.scrollerProxy(document.documentElement, {
+        scrollTop(value) {
+          if (arguments.length && lenis) {
+            lenis.scrollTo(value as number, { immediate: true });
+          }
+          return lenis?.scroll || 0;
+        },
+        getBoundingClientRect() {
+          return {
+            top: 0,
+            left: 0,
+            width: window.innerWidth,
+            height: window.innerHeight,
+          };
+        },
+        pinType: document.documentElement.style.transform
+          ? "transform"
+          : "fixed",
+      });
+
+      // Refresh ScrollTrigger on resize
+      const resizeObserver = new ResizeObserver(
+        throttle(() => {
+          ScrollTrigger.refresh(true); // Force recalculation
+        }, 100),
+      );
+
+      resizeObserver.observe(document.documentElement);
+
+      // Clean up
+      return () => {
+        lenis.off("scroll", scrollTriggerUpdate);
+        resizeObserver.disconnect();
+      };
     });
-
-    // Refresh ScrollTrigger on resize
-    const resizeObserver = new ResizeObserver(
-      throttle(() => {
-        ScrollTrigger.refresh(true); // Force recalculation
-      }, 100),
-    );
-
-    resizeObserver.observe(document.documentElement);
-
-    // Clean up
-    return () => {
-      lenis.off("scroll", scrollTriggerUpdate);
-      resizeObserver.disconnect();
-    };
   }, [lenis]);
 
   // Animation loop with performance optimizations

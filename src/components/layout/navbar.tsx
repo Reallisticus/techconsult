@@ -21,7 +21,6 @@ export const Navbar = () => {
     { name: t("nav.services"), href: "/services" },
     { name: t("nav.caseStudies"), href: "/case-studies" },
     { name: t("nav.about"), href: "/about" },
-    { name: t("nav.contact"), href: "/contact" },
   ];
 
   useMotionValueEvent(scrollY, "change", (latest) => {

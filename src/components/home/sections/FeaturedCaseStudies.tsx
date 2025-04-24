@@ -1,6 +1,7 @@
+// src/components/home/sections/FeaturedCaseStudies.tsx
 import { motion } from "framer-motion";
 import { useAnimationInView } from "../../../hooks/useAnimation";
-import { useLanguage } from "../../../i18n/context";
+import { useLanguage } from "~/i18n/context";
 import { ScrollReveal } from "../../../provider/SmoothScrollProvider";
 import { Button } from "../../ui/button";
 import { CaseStudyTranslations } from "../../../i18n/translations/case-studies";
@@ -16,15 +17,9 @@ export const FeaturedCaseStudies = () => {
   const caseStudiesTranslation =
     getNestedTranslation<CaseStudyTranslations>("caseStudies");
 
-  // Now extract the cases array
-  const cases = caseStudiesTranslation.cases;
-
-  const generateSlug = (title: string): string => {
-    return title
-      .toLowerCase()
-      .replace(/\s+/g, "-")
-      .replace(/[^\w\-\u0400-\u04FF]+/g, "");
-  };
+  // Extract the cases array and limit to 3 featured case studies
+  const allCases = caseStudiesTranslation.cases || [];
+  const featuredCases = allCases.slice(3, 6); // Show only the first 3 case studies
 
   return (
     <section ref={studiesRef} className="bg-transparent py-24">
@@ -43,9 +38,9 @@ export const FeaturedCaseStudies = () => {
 
         <ScrollReveal direction="up" threshold={0.1}>
           <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
-            {cases.map((study) => {
-              // Generate slug for URL
-              const studySlug = generateSlug(study.title);
+            {featuredCases.map((study) => {
+              // Use the id directly for the slug, or fallback to a stable slug if id is missing
+              const studySlug = study.id || createStableSlug(study.title || "");
 
               return (
                 <Link
@@ -80,7 +75,7 @@ export const FeaturedCaseStudies = () => {
                         {study.description}
                       </p>
                       <div className="mb-4 flex flex-wrap gap-2">
-                        {study.tags.map((tag, i) => (
+                        {study.tags?.map((tag, i) => (
                           <span
                             key={i}
                             className="rounded-full bg-neutral-800 px-2 py-1 text-xs text-neutral-300"
@@ -137,3 +132,18 @@ export const FeaturedCaseStudies = () => {
     </section>
   );
 };
+
+/**
+ * Create a language-independent, stable URL slug from a title
+ * This should only be used as a fallback if ID is not available
+ */
+function createStableSlug(title: string): string {
+  // For non-Latin characters (like Cyrillic), transliterate to Latin or remove them
+  return title
+    .toLowerCase()
+    .replace(/\s+/g, "-") // Replace spaces with hyphens
+    .replace(/[^\w-]+/g, "") // Remove any non-word chars except hyphens
+    .replace(/--+/g, "-") // Replace multiple hyphens with single hyphen
+    .replace(/^-+/, "") // Trim hyphens from start
+    .replace(/-+$/, ""); // Trim hyphens from end
+}

@@ -52,7 +52,7 @@ export const caseStudiesBG = {
       client: "Финансова корпорация",
       description:
         "Цялостно технологично обновяване, осигуряващо 40% подобрена оперативна ефективност.",
-      image: "/images/case-studies/ai-driven-analytics-platform.png",
+      image: "/images/case-studies/digital-transform.png",
       tags: [
         "Дигитална трансформация",
         "Миграция към облака",
@@ -75,9 +75,9 @@ export const caseStudiesBG = {
         position: "CTO",
       },
       gallery: [
-        "/images/case-studies/ai-driven-analytics-platform.png",
-        "/images/case-studies/ai-driven-analytics-platform.png",
-        "/images/case-studies/ai-driven-analytics-platform.png",
+        "/images/case-studies/dt1.png",
+        "/images/case-studies/dt3.png",
+        "/images/case-studies/dt2.png",
       ],
     },
     {
@@ -120,7 +120,7 @@ export const caseStudiesBG = {
       client: "Здравно заведение",
       description:
         "Мащабируема облачна архитектура, позволяваща безпроблемен растеж и съответствие с нормативните изисквания.",
-      image: "/images/case3.webp",
+      image: "/images/case-studies/infra-modern.png",
       tags: ["Техническа архитектура", "Сигурност", "Съответствие"],
       challenge:
         "Здравният доставчик се бореше със застаряваща инфраструктура, която не можеше да поддържа нарастващата им база от пациенти, като същевременно се сблъскваше с увеличаващи се регулаторни изисквания за съответствие и проблеми със сигурността.",
@@ -139,9 +139,9 @@ export const caseStudiesBG = {
         position: "ИТ Директор",
       },
       gallery: [
-        "/images/case3.webp",
-        "/images/case1.webp",
-        "/images/case2.webp",
+        "/images/case-studies/aidap1.png",
+        "/images/case-studies/aidap2.png",
+        "/images/case-studies/aidap3.png",
       ],
     },
 

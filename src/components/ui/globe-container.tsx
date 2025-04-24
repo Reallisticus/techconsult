@@ -10,6 +10,7 @@ import React, {
 import { Canvas } from "@react-three/fiber";
 import { Html, useProgress } from "@react-three/drei";
 import InteractiveGlobe from "../home/utils/InteractiveGlobe";
+import { usePerformance } from "~/lib/perf";
 
 interface GlobeContainerProps {
   markerLabel?: string;
@@ -86,7 +87,7 @@ const GlobeContainer: React.FC<GlobeContainerProps> = ({
   const [isPointerDown, setIsPointerDown] = useState(false);
   const [interactionTimeout, setInteractionTimeout] =
     useState<NodeJS.Timeout | null>(null);
-  const [performanceScore, setPerformanceScore] = useState<number | null>(null);
+  const { level, isMobile, isTablet } = usePerformance();
 
   // Touch handling state
   const touchStartY = useRef<number | null>(null);
@@ -98,80 +99,49 @@ const GlobeContainer: React.FC<GlobeContainerProps> = ({
     setIsMounted(true);
   }, []);
 
-  // Performance testing function to determine device capabilities
-  const testPerformance = useCallback(() => {
-    if (typeof window === "undefined") return 0;
-
-    // Simple performance test - how many operations per second
-    const start = performance.now();
-    let operations = 0;
-
-    while (performance.now() - start < 5) {
-      // Do some math operations to test CPU
-      Math.sin(operations) * Math.cos(operations);
-      operations++;
-    }
-
-    // Calculate operations per ms
-    const opsPerMs = operations / 5;
-
-    // Scale to a 0-100 score (calibrated empirically)
-    // High-end devices can do 20k+ ops in 5ms
-    const normalizedScore = Math.min(100, Math.max(0, (opsPerMs / 200) * 100));
-
-    return normalizedScore;
-  }, []);
-
-  // Detect device capabilities more comprehensively
   useEffect(() => {
     if (!isMounted) return;
 
-    const checkPerformance = () => {
-      // Run performance test
-      const perfScore = testPerformance();
-      setPerformanceScore(perfScore);
+    // Use the performance level directly
+    const hasReducedMotion = window.matchMedia(
+      "(prefers-reduced-motion: reduce)",
+    ).matches;
 
-      // Consider multiple factors for quality decision
-      const isMobile = window.innerWidth < 768;
-      const isLowPowerDevice = /iPad|iPhone|iPod/.test(navigator.userAgent);
-      const hasReducedMotion = window.matchMedia(
-        "(prefers-reduced-motion: reduce)",
-      ).matches;
-      const isBattery = "getBattery" in navigator;
+    // Determine quality based on performance level
+    const determineQuality = () => {
+      if (hasReducedMotion) {
+        return false; // Always use low quality for reduced motion
+      }
 
-      // Set quality based on all factors
-      let qualityScore = perfScore;
-
-      if (isMobile) qualityScore *= 0.8;
-      if (isLowPowerDevice) qualityScore *= 0.7;
-      if (hasReducedMotion) qualityScore *= 0.5;
-
-      // High quality for scores above 60
-      setIsHighQuality(qualityScore > 60);
-    };
-
-    // Run the test
-    checkPerformance();
-
-    // Listen for resource-constrained situations
-    const reduceQualityIfNeeded = () => {
-      if (document.visibilityState === "hidden") {
-        // Reduce quality when tab is in background
-        setIsHighQuality(false);
-      } else {
-        // Re-run check when tab becomes visible again
-        checkPerformance();
+      // Use performance level to determine quality
+      switch (level) {
+        case "high":
+          return true;
+        case "medium":
+          return !isMobile; // Medium quality, but low for mobile
+        case "low":
+        default:
+          return false; // Low quality for low performance devices
       }
     };
 
-    window.addEventListener("visibilitychange", reduceQualityIfNeeded);
-    window.addEventListener("resize", checkPerformance);
+    setIsHighQuality(determineQuality());
+
+    // Re-evaluate quality when tab visibility changes
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "hidden") {
+        setIsHighQuality(false);
+      } else {
+        setIsHighQuality(determineQuality());
+      }
+    };
+
+    window.addEventListener("visibilitychange", handleVisibilityChange);
 
     return () => {
-      window.removeEventListener("visibilitychange", reduceQualityIfNeeded);
-      window.removeEventListener("resize", checkPerformance);
+      window.removeEventListener("visibilitychange", handleVisibilityChange);
     };
-  }, [isMounted, testPerformance]);
+  }, [isMounted, level, isMobile]);
 
   // Hide interaction hints after delay or user interaction
   useEffect(() => {
@@ -215,10 +185,6 @@ const GlobeContainer: React.FC<GlobeContainerProps> = ({
       }, 300);
 
       setInteractionTimeout(timeout);
-
-      // We don't need to handle the wheel logic here anymore
-      // as it's now handled directly in the OrbitControls configuration
-      // in the InteractiveGlobe component
     },
     [isHovering, interactionTimeout],
   );
@@ -380,17 +346,9 @@ const GlobeContainer: React.FC<GlobeContainerProps> = ({
 
       // Calculate appropriate DPR based on performance
       let maxDpr = 2;
-      if (performanceScore !== null) {
-        // Scale DPR based on performance score
-        maxDpr =
-          performanceScore > 80
-            ? 2
-            : performanceScore > 60
-              ? 1.5
-              : performanceScore > 40
-                ? 1.25
-                : 1;
-      }
+
+      // Scale DPR based on performance score
+      maxDpr = level === "high" ? 2 : level === "medium" ? 1.5 : 1;
 
       return [
         {
@@ -402,7 +360,7 @@ const GlobeContainer: React.FC<GlobeContainerProps> = ({
     }
 
     return [defaultCamera, [1, 2] as [number, number]];
-  }, [isMounted, globeSize, performanceScore]);
+  }, [isMounted, globeSize, level]);
 
   // Don't render the Canvas until we're mounted on the client and have determined quality settings
   if (!isMounted || isHighQuality === null) {

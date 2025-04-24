@@ -6,48 +6,66 @@ import { useLanguage } from "~/i18n/context";
 import { ScrollReveal, Parallax } from "../../../provider/SmoothScrollProvider";
 import { motion } from "framer-motion";
 
+// Define service slugs as constants to ensure they remain in English
+const SERVICE_SLUGS = {
+  strategicPlanning: "strategic-planning",
+  digitalTransformation: "digital-transformation",
+  technicalArchitecture: "technical-architecture",
+  training: "training",
+  configurations: "configurations",
+  support: "support",
+  consultations: "consultations",
+};
+
 export const ServicesSection = () => {
   const { t } = useLanguage();
   const sectionRef = useRef<HTMLDivElement>(null);
   const cardsRef = useRef<HTMLDivElement>(null);
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
 
-  // Map service categories to translation keys
+  // Map service categories to translation keys and their English slugs
   const serviceTranslations = [
     {
       name: t("services.strategicPlanning"),
       description: t("services.strategicPlanning.description"),
       icon: "strategy",
+      slug: SERVICE_SLUGS.strategicPlanning,
     },
     {
       name: t("services.digitalTransformation"),
       description: t("services.digitalTransformation.description"),
       icon: "transform",
+      slug: SERVICE_SLUGS.digitalTransformation,
     },
     {
       name: t("services.technicalArchitecture"),
       description: t("services.technicalArchitecture.description"),
       icon: "architecture",
+      slug: SERVICE_SLUGS.technicalArchitecture,
     },
     {
       name: t("services.training"),
       description: t("services.training.description"),
       icon: "training",
+      slug: SERVICE_SLUGS.training,
     },
     {
       name: t("services.configurations"),
       description: t("services.configurations.description"),
       icon: "config",
+      slug: SERVICE_SLUGS.configurations,
     },
     {
       name: t("services.support"),
       description: t("services.support.description"),
       icon: "support",
+      slug: SERVICE_SLUGS.support,
     },
     {
       name: t("services.consultations"),
       description: t("services.consultations.description"),
       icon: "consult",
+      slug: SERVICE_SLUGS.consultations,
     },
   ];
 
@@ -364,16 +382,10 @@ export const ServicesSection = () => {
               );
             }
 
-            // Simply generate a URL-friendly slug from the displayed service name
-            const serviceSlug = service.name
-              .toLowerCase()
-              .replace(/\s+/g, "-") // Replace spaces with hyphens
-              .replace(/[^\w\-\u0400-\u04FF]+/g, ""); // Remove special characters but keep letters, numbers, hyphens and Cyrillic
-
             return (
               <Parallax key={`service-${index}`} speed={0.1} direction="up">
                 <motion.a
-                  href={`/services/${serviceSlug}`}
+                  href={`/services/${service.slug}`}
                   className="service-card group relative block h-full min-h-[250px] overflow-hidden rounded-xl bg-gradient-to-b from-neutral-900/80 to-neutral-950/80 backdrop-blur-sm md:min-h-[300px]"
                   onHoverStart={() => handleCardHover(index)}
                   onHoverEnd={() => handleCardHover(null)}

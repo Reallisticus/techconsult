@@ -19,6 +19,7 @@ export const en = {
   "nav.about": "About",
   "nav.contact": "Contact",
   "nav.letsTalk": "Let's Talk",
+  "nav.blog": "Blog",
 
   // Hero Section
   "hero.headline1": "TECHNOLOGY",
@@ -88,6 +89,8 @@ export const en = {
   "footer.location": "Sofia, Bulgaria",
   "footer.email": "contact@techconsult.bg",
   "footer.phone": "+359 88 888 8888",
+  "footer.paragraph":
+    "Strategic IT consulting services helping businesses transform through technology innovation.",
 
   // Error Messages
   "error.generic": "Something went wrong. Please try again.",

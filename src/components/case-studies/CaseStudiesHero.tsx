@@ -261,7 +261,6 @@ const CaseStudiesHero = () => {
     caseStudiesData?.description,
   ]);
 
-  // Component initialization
   useEffect(() => {
     setIsMounted(true);
     unmountedRef.current = false;

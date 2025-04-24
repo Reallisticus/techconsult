@@ -16,6 +16,7 @@ import { memo, useEffect } from "react";
 import { useLanguage } from "~/i18n/context";
 import { getFontFamily, getFontVariables } from "~/lib/fonts";
 import { GSAPProvider } from "../provider/GSAPProvider";
+import { CustomCursor } from "~/components/ui/custom-cursor";
 
 // Memoizing main content to prevent unnecessary re-renders
 const MainContent = memo(({ children }: { children: React.ReactNode }) => {
@@ -71,9 +72,17 @@ export default function RootLayout({
         `}</style>
       </head>
       <body className="overflow-x-hidden text-white">
+        {" "}
+        {/* Add CustomCursor here */}
+        <CustomCursor
+          color="accent-500"
+          size={32}
+          hoverSize={48}
+          enableTrail={true}
+          hoverSelectors="a, button, [role=button], input, textarea, select, [data-cursor-hover]"
+        />
         {/* Loading overlay - will automatically disappear after assets load */}
         <LoadingOverlay minDuration={1000} />
-
         {/* Application providers, correctly nested for dependencies */}
         <LanguageProvider defaultLanguage="en">
           <FontManager>

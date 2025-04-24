@@ -19,7 +19,7 @@ export const bg = {
   "nav.about": "За нас",
   "nav.contact": "Контакти",
   "nav.letsTalk": "Свържете се с нас",
-
+  "nav.blog": "Блог",
   // Hero Section
   "hero.headline1": "РЕШЕНИЯ",
   "hero.headline2": "ДНЕС ЗА",
@@ -81,6 +81,8 @@ export const bg = {
   "footer.rights": "© {{year}} TechConsult.BG. Всички права запазени.",
   "footer.privacyPolicy": "Политика за поверителност",
   "footer.termsOfService": "Общи условия",
+  "footer.paragraph":
+    "Стратегически технологични решения помагащи на Вашият бизнес да се развива чрез иновации и оптимизация на процесите.",
 
   // Contact Info
   "footer.location": "София, България",

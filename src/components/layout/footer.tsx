@@ -7,6 +7,17 @@ import { Magnetic } from "~/components/ui/magnetic";
 import { useAnimationInView } from "~/hooks/useAnimation";
 import { useLanguage } from "~/i18n/context";
 
+// Define service slugs as constants to ensure they remain in English
+const SERVICE_SLUGS = {
+  strategicPlanning: "strategic-planning",
+  digitalTransformation: "digital-transformation",
+  technicalArchitecture: "technical-architecture",
+  training: "training",
+  configurations: "configurations",
+  support: "support",
+  consultations: "consultations",
+};
+
 export const Footer = () => {
   const { t } = useLanguage();
   const [footerRef, footerInView] = useAnimationInView("slideUp", {
@@ -19,6 +30,7 @@ export const Footer = () => {
     { name: t("nav.caseStudies"), href: "/case-studies" },
     { name: t("nav.about"), href: "/about" },
     { name: t("nav.contact"), href: "/contact" },
+    { name: t("nav.blog"), href: "/blog" },
   ];
 
   const socialLinks = [
@@ -27,19 +39,35 @@ export const Footer = () => {
     { name: "GitHub", href: "#", icon: "github" },
   ];
 
-  // Get service categories with translated names
+  // Get service categories with translated names but fixed English slugs
   const serviceCategories = [
     {
       name: t("services.strategicPlanning"),
-      href: "/services#strategic-planning",
+      href: `/services/${SERVICE_SLUGS.strategicPlanning}`,
     },
     {
       name: t("services.digitalTransformation"),
-      href: "/services#digital-transformation",
+      href: `/services/${SERVICE_SLUGS.digitalTransformation}`,
     },
     {
       name: t("services.technicalArchitecture"),
-      href: "/services#technical-architecture",
+      href: `/services/${SERVICE_SLUGS.technicalArchitecture}`,
+    },
+    {
+      name: t("services.training"),
+      href: `/services/${SERVICE_SLUGS.training}`,
+    },
+    {
+      name: t("services.configurations"),
+      href: `/services/${SERVICE_SLUGS.configurations}`,
+    },
+    {
+      name: t("services.support"),
+      href: `/services/${SERVICE_SLUGS.support}`,
+    },
+    {
+      name: t("services.consultations"),
+      href: `/services/${SERVICE_SLUGS.consultations}`,
     },
   ];
 
@@ -88,10 +116,7 @@ export const Footer = () => {
               </h2>
             </Link>
 
-            <p className="max-w-xs text-neutral-400">
-              Strategic IT consulting services helping businesses transform
-              through technology innovation.
-            </p>
+            <p className="max-w-xs text-neutral-400">{t("footer.paragraph")}</p>
 
             <div className="flex space-x-4">
               {socialLinks.map((link) => (

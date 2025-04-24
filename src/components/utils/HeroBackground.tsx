@@ -49,7 +49,6 @@ export const HeroBackground = () => {
   useEffect(() => {
     try {
       if (!canvasRef.current) return;
-      console.log("🔄 HeroBackground useEffect running");
 
       const performanceLevel = getPerformanceLevel();
 
@@ -117,8 +116,6 @@ export const HeroBackground = () => {
       // Load HDR environment map - progressive approach
       try {
         const loadHDR = () => {
-          console.log("📦 Starting HDR environment loading");
-
           const rgbeLoader = new RGBELoader();
           rgbeLoader.setPath("/textures/");
 
@@ -151,17 +148,13 @@ export const HeroBackground = () => {
         const { lowResPromise, highResPromise } = loadHDR();
         lowResPromise.then((texture) => {
           scene.environment = texture;
-          console.log("Low-res HDR environment loaded");
 
           highResPromise!.then((highResTexture) => {
             scene.environment = highResTexture;
-            console.log("High-res HDR environment loaded");
           });
         });
-
-        console.log("✅ HDR environment initialized");
-      } catch (hdrError) {
-        console.error("❌ Error in HDR environment loading:", hdrError);
+      } catch (e) {
+        console.error("❌ Error in HDR environment loading:", e);
       }
 
       const setupPostProcessing = () => {
@@ -333,12 +326,9 @@ export const HeroBackground = () => {
       };
 
       try {
-        console.log("📦 Starting model loading");
         loader.load(
           "/models/scene.gltf",
           (gltf) => {
-            console.log("Model loaded successfully");
-
             // Process each mesh in the model
             let meshIndex = 0;
             gltf.scene.traverse((child) => {
@@ -440,10 +430,8 @@ export const HeroBackground = () => {
             console.error("Error loading model:", error);
           },
         );
-        console.log("✅ Model loading initialized");
       } catch (error) {
         console.error("❌ Error in model loading:", error);
-        // Mark resource as complete anyway to prevent hanging
       }
       // Create more sophisticated connection network
       const linesGeometry = new THREE.BufferGeometry();

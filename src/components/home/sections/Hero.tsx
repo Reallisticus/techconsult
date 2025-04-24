@@ -5,34 +5,14 @@ import { Button } from "../../ui/button";
 import { useLanguage } from "~/i18n/context";
 import { getDisplayFontClass } from "~/lib/fonts";
 import { cn } from "~/lib/utils";
-import { useSmoothScroll } from "../../../provider/SmoothScrollProvider";
-import { motion, useMotionValue, useSpring, useTransform } from "framer-motion";
+import {
+  motion,
+  useAnimation,
+  useMotionValue,
+  useSpring,
+  useTransform,
+} from "framer-motion";
 import { useIsomorphicLayoutEffect } from "~/hooks/useIsomorphicLayout";
-
-// Define tech keywords outside component to avoid re-creation on renders
-const TECH_KEYWORDS = [
-  "React",
-  "NextJS",
-  "TypeScript",
-  "ThreeJS",
-  "GSAP",
-  "Architecture",
-  "Cloud",
-  "AI",
-];
-
-// Pre-calculate random positions and animations to avoid recalculation on render
-const generateKeywordAnimations = () =>
-  TECH_KEYWORDS.map((keyword) => ({
-    keyword,
-    xPos: `${-10 + Math.random() * 120}%`,
-    yPos: `${10 + Math.random() * 80}%`,
-    rotation: Math.random() * 360,
-    opacity: 0.2 + Math.random() * 0.3,
-    animRotate: Math.random() > 0.5 ? 10 : -10,
-    duration: 3 + Math.random() * 5,
-    delay: Math.random() * 2,
-  }));
 
 export const Hero = () => {
   const { t, language } = useLanguage();
@@ -44,20 +24,7 @@ export const Hero = () => {
   const displayFontClass = getDisplayFontClass(language);
   const mouseX = useMotionValue(0);
   const mouseY = useMotionValue(0);
-
-  // State for storing keyword animations with random values (client-side only)
-  const [keywordAnimations, setKeywordAnimations] = useState<
-    Array<{
-      keyword: string;
-      xPos: string;
-      yPos: string;
-      rotation: number;
-      opacity: number;
-      animRotate: number;
-      duration: number;
-      delay: number;
-    }>
-  >([]);
+  const floatAnimationControls = useAnimation();
 
   // Spring physics for smoother mouse following
   const springConfig = { damping: 25, stiffness: 300 };
@@ -69,13 +36,6 @@ export const Hero = () => {
   const moveY = useTransform(followY, [-800, 800], [-15, 15]);
   const rotateX = useTransform(followY, [-800, 800], [2, -2]);
   const rotateY = useTransform(followX, [-800, 800], [-2, 2]);
-
-  // Generate keyword animations only once on mount
-  useEffect(() => {
-    if (keywordAnimations.length === 0) {
-      setKeywordAnimations(generateKeywordAnimations());
-    }
-  }, [keywordAnimations.length]);
 
   // Track mouse position
   useEffect(() => {
@@ -213,13 +173,23 @@ export const Hero = () => {
     };
   }, [imagesLoaded]);
 
-  // Additional transforms for layered motion
-  const x = useTransform(moveX, (v) => -v * 0.5);
-  const y = useTransform(moveY, (v) => -v * 0.5);
+  useEffect(() => {
+    // Start the animation when component mounts
+    floatAnimationControls.start({
+      y: [0, 8, 0],
+      transition: {
+        duration: 6,
+        repeat: Infinity,
+        ease: "easeInOut",
+        repeatType: "reverse",
+      },
+    });
 
-  // Our static floating animation values
-  const floatY = [0, 8, 0];
-  const floatDuration = 6;
+    // Clean up the animation when component unmounts
+    return () => {
+      floatAnimationControls.stop();
+    };
+  }, []);
 
   return (
     <section
@@ -227,16 +197,7 @@ export const Hero = () => {
       className="relative min-h-[100vh] w-full overflow-hidden bg-transparent"
     >
       <div className="relative min-h-screen w-full overflow-hidden">
-        <motion.div
-          className="relative"
-          animate={{ y: floatY }}
-          transition={{
-            duration: floatDuration,
-            repeat: Infinity,
-            ease: "easeInOut",
-            repeatType: "reverse",
-          }}
-        >
+        <motion.div className="relative" animate={floatAnimationControls}>
           <motion.div
             ref={contentRef}
             className="hero-content container relative z-10 mx-auto flex min-h-screen flex-col items-center justify-center px-4 py-24"
@@ -302,36 +263,6 @@ export const Hero = () => {
           </motion.div>
         </motion.div>
       </div>
-
-      {/* Tech keywords floating in 3D space */}
-      {keywordAnimations.length > 0 && (
-        <div className="pointer-events-none absolute inset-0 overflow-hidden">
-          {keywordAnimations.map((item) => (
-            <motion.div
-              key={item.keyword}
-              className="absolute text-sm font-light text-white/20 md:text-base"
-              style={{
-                x: item.xPos,
-                y: item.yPos,
-                rotateZ: item.rotation,
-                opacity: item.opacity,
-              }}
-              animate={{
-                y: ["0%", "5%", "0%"],
-                rotate: [0, item.animRotate, 0],
-              }}
-              transition={{
-                duration: item.duration,
-                repeat: Infinity,
-                ease: "easeInOut",
-                delay: item.delay,
-              }}
-            >
-              {item.keyword}
-            </motion.div>
-          ))}
-        </div>
-      )}
     </section>
   );
 };
